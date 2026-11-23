@@ -29,3 +29,4 @@ test-result.txt
 web-log.txt
 test-result.txt*
 .vscode/
+_site/

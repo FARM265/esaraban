@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>E-Saraban ระบบสารบรรณอิเล็กทรอนิกส์</title>
+<meta name="description" content="ระบบสารบรรณอิเล็กทรอนิกส์ รับ ส่ง เสนอ สั่งการ ลงนาม และจัดเก็บหนังสือราชการ พัฒนาด้วย Django">
+<link rel="icon" type="image/png" href="img/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="wrap">
+    <img src="img/nacc-emblem.png" alt="ตราสำนักงาน ป.ป.ช." width="27" height="40">
+    <a class="name" href="./">E-Saraban</a>
+    <nav aria-label="เมนูหลัก">
+      <a href="#features">ความสามารถ</a>
+      <a href="#security">ความปลอดภัย</a>
+      <a href="#tech">เทคโนโลยี</a>
+      <a href="docs/">คู่มือ</a>
+      <a href="https://github.com/FARM265/esaraban">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+<section class="hero">
+  <div class="wrap">
+    <div>
+      <p class="org">สำนักงาน ป.ป.ช. ประจำจังหวัดเชียงใหม่ · กลุ่มงานป้องกันการทุจริต</p>
+      <h1>ระบบสารบรรณอิเล็กทรอนิกส์</h1>
+      <p class="lead">รับ ส่ง เสนอ สั่งการ ลงนาม และจัดเก็บหนังสือราชการในที่เดียว ปลอดภัยตามชั้นความลับ และตรวจสอบย้อนหลังได้ทุกขั้น</p>
+      <div class="btns">
+        <a class="btn btn-gold" href="docs/install.html">วิธีติดตั้ง</a>
+        <a class="btn btn-ghost" href="https://github.com/FARM265/esaraban">ดูโค้ดบน GitHub</a>
+      </div>
+    </div>
+    <div class="shot"><img src="img/screen-home.jpg" alt="หน้าหลักของระบบ แสดงงานรอดำเนินการและเมนูด้านซ้าย" width="1366" height="900"></div>
+  </div>
+</section>
+
+<section class="block" id="flow">
+  <div class="wrap">
+    <h2>หนังสือหนึ่งฉบับ ตั้งแต่รับเข้าจนจัดเก็บ</h2>
+    <p class="sub">ทุกขั้นแจ้งเตือนผู้เกี่ยวข้องในระบบ และบันทึกลงประวัติเอกสาร ผู้พิจารณาส่งกลับแก้ไขได้ทุกขั้น</p>
+    <ol class="steps">
+      <li><b>รับ / สร้าง</b><span>ลงทะเบียนรับ หรือสร้างหนังสือจากแม่แบบ ระบบออกเลขให้</span></li>
+      <li><b>เสนอ</b><span>ส่งตามเส้นทางการเสนอ ผู้พิจารณาเห็นในงานรอดำเนินการ</span></li>
+      <li><b>สั่งการ</b><span>ผู้บริหารพิมพ์สั่งการ/เกษียนลงบนหนังสือ</span></li>
+      <li><b>ลงนาม</b><span>ภาพลายมือชื่อ หรือลายมือชื่อดิจิทัล</span></li>
+      <li><b>จัดเก็บ</b><span>เข้าคลังเอกสาร ค้นย้อนหลังได้</span></li>
+    </ol>
+  </div>
+</section>
+
+<section class="block alt" id="features">
+  <div class="wrap">
+    <h2>ความสามารถหลัก</h2>
+    <p class="sub">ครอบคลุมงานสารบรรณตามระเบียบสำนักนายกรัฐมนตรีว่าด้วยงานสารบรรณ</p>
+    <div class="grid">
+      <div class="card"><h3>ทะเบียนและเลขหนังสือ</h3><p>ลงทะเบียนรับ ออกเลขอัตโนมัติไม่ซ้ำ ยกเลิกเลขพร้อมเหตุผล</p></div>
+      <div class="card"><h3>สร้างหนังสือจากแม่แบบ</h3><p>บันทึกข้อความ หนังสือภายนอก คำสั่ง ประกาศ ดาวน์โหลด PDF และ Word</p></div>
+      <div class="card"><h3>เส้นทางการเสนอ</h3><p>เสนอ ส่งกลับแก้ไข สั่งการ และมอบหมายปฏิบัติราชการแทน</p></div>
+      <div class="card"><h3>สั่งการ/เกษียน และลงนาม</h3><p>พิมพ์ลงบนหนังสือ เลือกสีหมึก ได้ไฟล์ฉบับเดียว</p></div>
+      <div class="card"><h3>ลงปฏิทินจากหนังสือ</h3><p>อ่านชื่องาน วันเวลา สถานที่จากไฟล์ (รวมภาพสแกนด้วย OCR ภาษาไทย) แล้วลง Google Calendar</p></div>
+      <div class="card"><h3>ค้นหา รายงาน คลังเอกสาร</h3><p>ติดตามว่าเรื่องอยู่ที่ใคร ส่งออกรายงาน Excel และ PDF</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="block" id="screens">
+  <div class="wrap">
+    <h2>หน้าจอระบบ</h2>
+    <p class="sub">เปิดเอกสารแล้วเห็นไฟล์ล่าสุดทันที ไม่ต้องกดเปิดไฟล์</p>
+    <div class="shots">
+      <figure><img src="img/screen-document.jpg" alt="หน้าเอกสาร แสดงไฟล์ล่าสุดในกรอบไฟล์" loading="lazy" width="1400" height="875"><figcaption>หน้าเอกสาร: แสดงไฟล์ล่าสุด สลับไฟล์ได้</figcaption></figure>
+      <figure><img src="img/screen-login.jpg" alt="หน้าเข้าสู่ระบบ พร้อมตราสำนักงาน" loading="lazy" width="1366" height="820"><figcaption>หน้าเข้าสู่ระบบ: ยืนยันตัวตน 2 ขั้น</figcaption></figure>
+    </div>
+    <p class="note">ภาพจากระบบทดลองที่ใช้ข้อมูลสมมติ</p>
+  </div>
+</section>
+
+<section class="block alt" id="security">
+  <div class="wrap">
+    <h2>ความปลอดภัย</h2>
+    <p class="sub">ออกแบบให้ปลอดภัยตั้งแต่แรก ไม่ได้เพิ่มทีหลัง</p>
+    <div class="grid">
+      <div class="card"><h3>ยืนยันตัวตน 2 ขั้น</h3><p>รหัสผ่านและรหัสจากแอป Authenticator ล็อกเมื่อใส่ผิดหลายครั้ง</p></div>
+      <div class="card"><h3>สิทธิ์ตามบทบาท</h3><p>เห็นเฉพาะเอกสารของกลุ่มงานและชั้นความลับที่ได้รับอนุญาต</p></div>
+      <div class="card"><h3>เข้ารหัสไฟล์</h3><p>ไฟล์ทุกไฟล์เข้ารหัสก่อนเก็บ เปิดได้ผ่านระบบที่ตรวจสิทธิ์เท่านั้น</p></div>
+      <div class="card"><h3>Audit Log แก้ไม่ได้</h3><p>บันทึกทุกการกระทำต่อกันเป็นลูกโซ่ hash ตรวจได้ว่าไม่มีใครแก้หรือลบ</p></div>
+      <div class="card"><h3>แยกหน้าที่</h3><p>ผู้ดูแลระบบและผู้ตรวจสอบไม่เห็นเนื้อหาเอกสาร</p></div>
+      <div class="card"><h3>HTTPS และ CSP</h3><p>เข้ารหัสการเชื่อมต่อ ป้องกันสคริปต์แปลกปลอมและไฟล์ PDF อันตราย</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="block" id="tech">
+  <div class="wrap">
+    <h2>เทคโนโลยี</h2>
+    <p class="sub">ซอฟต์แวร์โอเพนซอร์สทั้งหมด ติดตั้งด้วย Docker</p>
+    <table>
+      <tr><th style="width:28%">ส่วน</th><th>ใช้</th></tr>
+      <tr><td>Backend</td><td>Python, Django 5.2, PostgreSQL 16</td></tr>
+      <tr><td>Frontend</td><td>Django templates, Bootstrap 5, ฟอนต์ Sarabun, PDF.js</td></tr>
+      <tr><td>เอกสาร</td><td>สร้าง PDF ภาษาไทย (ReportLab, Pillow, libthai), Word (python-docx), Excel (openpyxl), OCR (Tesseract)</td></tr>
+      <tr><td>ลายมือชื่อดิจิทัล</td><td>PDF signature (PKCS#7) ด้วย cryptography และ pypdf</td></tr>
+      <tr><td>การติดตั้ง</td><td>Docker Compose: web (Gunicorn), db (PostgreSQL), nginx (HTTPS)</td></tr>
+    </table>
+    <div class="callout">
+      <p><b>หน้านี้เป็นหน้าแนะนำโครงการ</b> ตัวระบบมี backend (Django + ฐานข้อมูล) จึงต้องติดตั้งบน server ที่รัน Docker ได้ เช่น คอมพิวเตอร์ในสำนักงาน หรือ server เช่า ดู<a href="docs/install.html">คู่มือติดตั้ง</a></p>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer class="credit">
+  <p>&copy; 2569 นายธนาธิป แสงขาร นักศึกษาสหกิจศึกษา มหาวิทยาลัยเชียงใหม่</p>
+  <p>ณ สำนักงาน ป.ป.ช. ประจำจังหวัดเชียงใหม่</p>
+</footer>
+</body>
+</html>

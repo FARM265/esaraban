@@ -1,0 +1,115 @@
+:root {
+  --ink: #2A0E31;
+  --ink-2: #3C1645;
+  --purple: #64166A;
+  --purple-dark: #4A0F50;
+  --tint: #F3EAF4;
+  --gold: #F5CC00;
+  --bg: #F7F5F8;
+  --paper: #FFFFFF;
+  --line: #E5DEE7;
+  --text: #1E1322;
+  --muted: #5E5266;
+  --on-dark: #E9DFEC;
+  --on-dark-muted: #C2B0C8;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; background: var(--bg); color: var(--text); font-family: "Sarabun", "Leelawadee UI", Tahoma, sans-serif; font-size: 18px; line-height: 1.7; }
+a { color: var(--purple); }
+a:focus-visible, button:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+img { max-width: 100%; height: auto; display: block; }
+.wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+
+/* แถบบน */
+.topbar { background: var(--ink); color: #fff; border-bottom: 2px solid var(--gold); }
+.topbar .wrap { display: flex; align-items: center; gap: 14px; min-height: 64px; }
+.topbar img { height: 40px; width: auto; }
+.topbar .name { font-weight: 700; font-size: 18px; color: #fff; text-decoration: none; }
+.topbar nav { margin-left: auto; display: flex; gap: 20px; flex-wrap: wrap; }
+.topbar nav a { color: var(--on-dark); text-decoration: none; font-size: 16px; }
+.topbar nav a:hover { color: #fff; text-decoration: underline; }
+
+/* ส่วนเปิด */
+.hero { background: var(--ink); color: var(--on-dark); padding: 64px 0 72px; }
+.hero .wrap { display: grid; grid-template-columns: 1.05fr 1fr; gap: 48px; align-items: center; }
+.hero .org { color: var(--gold); font-weight: 600; margin: 0 0 8px; }
+.hero h1 { font-size: clamp(34px, 5vw, 56px); line-height: 1.25; margin: 0 0 16px; color: #fff; }
+.hero p.lead { font-size: 20px; color: var(--on-dark-muted); margin: 0 0 28px; max-width: 34em; }
+.hero .shot { border-radius: 14px; overflow: hidden; border: 1px solid #55305E; box-shadow: 0 20px 50px rgba(0,0,0,.35); }
+.btns { display: flex; flex-wrap: wrap; gap: 12px; }
+.btn { display: inline-block; padding: 12px 22px; border-radius: 10px; font-weight: 600; text-decoration: none; font-size: 17px; }
+.btn-gold { background: var(--gold); color: var(--ink); }
+.btn-gold:hover { background: #FFDB33; }
+.btn-ghost { border: 1px solid #7B5A84; color: #fff; }
+.btn-ghost:hover { background: var(--ink-2); }
+
+/* ส่วนเนื้อหา */
+section.block { padding: 64px 0; }
+section.block.alt { background: var(--paper); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+h2 { font-size: 32px; line-height: 1.3; margin: 0 0 8px; color: var(--ink); }
+.sub { color: var(--muted); margin: 0 0 32px; max-width: 46em; }
+.grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+.card { background: var(--paper); border: 1px solid var(--line); border-radius: 14px; padding: 22px 24px; }
+section.alt .card { background: var(--bg); }
+.card h3 { margin: 0 0 6px; font-size: 20px; color: var(--ink); }
+.card p { margin: 0; color: var(--muted); font-size: 17px; }
+
+/* ขั้นตอน */
+.steps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; counter-reset: step; }
+.steps li { counter-increment: step; background: var(--paper); border: 1px solid var(--line); border-top: 4px solid var(--purple); border-radius: 12px; padding: 18px; }
+.steps li::before { content: counter(step); display: block; font-weight: 700; color: var(--purple); font-size: 22px; }
+.steps b { display: block; color: var(--ink); font-size: 19px; }
+.steps span { color: var(--muted); font-size: 16px; }
+
+/* ภาพหน้าจอ */
+.shots { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+.shots figure { margin: 0; }
+.shots img { border-radius: 12px; border: 1px solid var(--line); }
+.shots figcaption { color: var(--muted); font-size: 16px; margin-top: 8px; }
+.note { font-size: 15px; color: var(--muted); }
+
+/* ตารางเทคโนโลยี */
+table { width: 100%; border-collapse: collapse; background: var(--paper); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+th, td { text-align: left; padding: 12px 16px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { background: var(--tint); color: var(--ink); }
+tr:last-child td { border-bottom: 0; }
+
+/* กล่องสำคัญ */
+.callout { background: var(--tint); border-left: 4px solid var(--purple); border-radius: 0 12px 12px 0; padding: 18px 22px; margin-top: 24px; }
+.callout p { margin: 0; }
+
+/* หน้าคู่มือ */
+.doc-layout { display: grid; grid-template-columns: 240px 1fr; gap: 40px; padding: 40px 0 64px; }
+.doc-nav { position: sticky; top: 16px; align-self: start; }
+.doc-nav p { font-weight: 700; color: var(--ink); margin: 0 0 8px; }
+.doc-nav ul { list-style: none; margin: 0; padding: 0; }
+.doc-nav li a { display: block; padding: 6px 10px; border-radius: 8px; text-decoration: none; color: var(--text); font-size: 16px; }
+.doc-nav li a:hover { background: var(--tint); }
+.doc-nav li a.active { background: var(--purple); color: #fff; }
+.doc { background: var(--paper); border: 1px solid var(--line); border-radius: 14px; padding: 32px 40px; min-width: 0; }
+.doc h1 { font-size: 34px; line-height: 1.3; color: var(--ink); margin-top: 0; }
+.doc h2 { font-size: 26px; margin-top: 36px; padding-top: 12px; border-top: 1px solid var(--line); }
+.doc h3 { font-size: 21px; color: var(--ink); }
+.doc pre { background: #2A0E31; color: #F3EAF4; padding: 14px 18px; border-radius: 10px; overflow-x: auto; font-size: 15px; }
+.doc code { font-family: Consolas, "Courier New", monospace; font-size: .92em; }
+.doc p code, .doc li code, .doc td code { background: var(--tint); padding: 1px 6px; border-radius: 5px; }
+.doc blockquote { margin: 16px 0; background: #FFF8D6; border-left: 4px solid var(--gold); padding: 12px 18px; border-radius: 0 10px 10px 0; }
+.doc table { font-size: 16px; display: block; overflow-x: auto; }
+
+footer.credit { background: var(--ink); color: var(--on-dark-muted); text-align: center; padding: 28px 16px; font-size: 15px; line-height: 1.7; }
+footer.credit p { margin: 0; }
+footer.credit a { color: var(--on-dark); }
+
+@media (max-width: 900px) {
+  .hero .wrap { grid-template-columns: 1fr; }
+  .grid { grid-template-columns: 1fr 1fr; }
+  .steps { grid-template-columns: 1fr 1fr; }
+  .doc-layout { grid-template-columns: 1fr; }
+  .doc-nav { position: static; }
+}
+@media (max-width: 600px) {
+  .grid, .shots, .steps { grid-template-columns: 1fr; }
+  .topbar nav { display: none; }
+  .doc { padding: 22px 18px; }
+}
