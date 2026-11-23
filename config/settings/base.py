@@ -58,6 +58,7 @@ LOCAL_APPS = [
 INSTALLED_APPS = DJANGO_APPS + LOCAL_APPS
 
 MIDDLEWARE = [
+    "apps.core.middleware.HealthCheckMiddleware",
     "django.middleware.security.SecurityMiddleware",
     # บนคลาวด์ที่ไม่มี nginx ให้ Django ส่งไฟล์ CSS/JS เอง (เปิดด้วย SERVE_STATIC=True)
     *(["whitenoise.middleware.WhiteNoiseMiddleware"] if env.bool("SERVE_STATIC", default=False) else []),

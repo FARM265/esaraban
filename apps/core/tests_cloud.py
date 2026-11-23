@@ -2,7 +2,7 @@
 import io
 from unittest import mock
 
-from django.test import RequestFactory, SimpleTestCase, override_settings
+from django.test import RequestFactory, SimpleTestCase, TestCase, override_settings
 
 from apps.accounts.security import client_ip
 from apps.documents import storage
@@ -80,3 +80,15 @@ class ProxyClientIPTests(SimpleTestCase):
     def test_render_settings_ignore_spoofable_headers(self):
         req = self.request(HTTP_X_REAL_IP="6.6.6.6", HTTP_X_FORWARDED_FOR="6.6.6.6, 203.0.113.9, 10.1.1.1")
         self.assertEqual(client_ip(req), "203.0.113.9")
+
+
+class HealthCheckBehindProxyTests(TestCase):
+    """ระบบเฝ้าระวังของผู้ให้บริการคลาวด์เรียกด้วย IP ภายในที่ไม่อยู่ใน ALLOWED_HOSTS และใช้ http"""
+
+    @override_settings(ALLOWED_HOSTS=["esaraban.example"], SECURE_SSL_REDIRECT=True)
+    def test_healthz_answers_for_unknown_host(self):
+        response = self.client.get("/healthz", HTTP_HOST="10.0.0.5:8000")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.content, b"ok")
+        # หน้าอื่นยังตรวจชื่อโดเมนตามปกติ
+        self.assertEqual(self.client.get("/accounts/login/", HTTP_HOST="10.0.0.5:8000").status_code, 400)

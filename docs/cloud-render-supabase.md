@@ -40,20 +40,16 @@
    - ส่วน **S3 Access Keys** กด **New access key** คัดลอก **Access key ID** และ **Secret access key**
      (Secret แสดงครั้งเดียว) เก็บเป็น **S3_ACCESS_KEY_ID** และ **S3_SECRET_ACCESS_KEY**
 
-## ขั้นที่ 2: ส่งโค้ดขึ้น GitHub (แบบส่วนตัว)
+## ขั้นที่ 2: โค้ดบน GitHub
 
-1. สมัคร https://github.com และติดตั้ง **GitHub Desktop**
-2. GitHub Desktop > **File > Add local repository** เลือก `C:\Projects\esaraban`
-   ถ้าถามให้สร้าง repository ให้กด **create a repository**
-3. ตรวจรายการไฟล์ทางซ้าย **ต้องไม่มี** `.env.docker`, `.env.cloud`, โฟลเดอร์ `backups`, `docker/certs`
-   (ไฟล์ `.gitignore` กันไว้แล้ว ถ้าเห็นไฟล์เหล่านี้ให้หยุดและแจ้งผู้พัฒนา)
-4. ใส่ข้อความ เช่น `เริ่มต้น` กด **Commit to main** แล้วกด **Publish repository**
-   **ติ๊ก Keep this code private** ไว้
+โค้ดอยู่ที่ https://github.com/FARM265/esaraban แล้ว (ไม่มีไฟล์ค่าลับ) Render จะดึงจากที่นี่ไป build
+เมื่อแก้โค้ดและส่งขึ้น GitHub แล้ว Render จะ build รุ่นใหม่ให้เอง
 
 ## ขั้นที่ 3: Render (ตัวเว็บ)
 
 1. สมัครที่ https://render.com ด้วยบัญชี GitHub
-2. กด **New > Blueprint** เลือก repository `esaraban` Render จะอ่านไฟล์ `render.yaml` และถามค่าต่อไปนี้
+2. กด **New > Blueprint** แล้วกด **Configure account / Connect GitHub** อนุญาตให้ Render เห็น repository `FARM265/esaraban`
+   เลือก repository นี้ Render จะอ่านไฟล์ `render.yaml` และถามค่าต่อไปนี้
 
    | ค่า | ใส่ |
    |---|---|
@@ -83,8 +79,8 @@
 
 ## การปรับปรุงระบบรุ่นใหม่
 
-เมื่อได้ไฟล์โค้ดใหม่ วางทับใน `C:\Projects\esaraban` แล้วใน GitHub Desktop กด **Commit** และ **Push origin**
-Render จะ build และเปลี่ยนเป็นรุ่นใหม่ให้เอง (ประมาณ 10 นาที ระหว่างนั้นรุ่นเดิมยังใช้งานได้)
+เมื่อโค้ดรุ่นใหม่ถูกส่งขึ้น GitHub (branch `main`) Render จะ build และเปลี่ยนเป็นรุ่นใหม่ให้เอง
+(ประมาณ 10 นาที ระหว่างนั้นรุ่นเดิมยังใช้งานได้)
 
 ## สำรองข้อมูล
 
