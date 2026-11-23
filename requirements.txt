@@ -1,0 +1,15 @@
+# แพ็กเกจที่ใช้บน server จริง
+Django>=5.2,<5.3
+psycopg[binary]>=3.2,<3.4
+django-environ>=0.12,<0.13
+gunicorn>=23.0,<24
+cryptography>=44.0      # เข้ารหัส secret ของ MFA
+segno>=1.6,<2           # สร้าง QR code (pure Python ไม่มี dependency)
+pypdf>=5.0,<7           # อ่านและแก้ไข PDF (วางภาพลายมือชื่อ นับหน้า)
+reportlab>=4.2,<6       # สร้างชั้นภาพลายมือชื่อสำหรับวางบน PDF
+Pillow>=11.0,<13        # ตรวจและแปลงภาพลายมือชื่อ
+openpyxl>=3.1,<4        # รายงาน Excel
+python-docx>=1.1,<2     # ดาวน์โหลดหนังสือจากแม่แบบเป็น Word
+pypdfium2>=4.30,<6      # แปลงหน้า PDF ที่เป็นภาพสแกนเป็นภาพ เพื่ออ่านด้วย OCR สำหรับลงปฏิทิน
+boto3>=1.34,<2           # ที่เก็บไฟล์แบบ S3 (Supabase Storage) เมื่อรันบนคลาวด์
+whitenoise>=6.7,<7       # ส่งไฟล์ CSS/JS เมื่อไม่มี nginx (บนคลาวด์)

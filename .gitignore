@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# ความลับและข้อมูล
+.env
+.env.docker
+.env.docker.bak*
+.env.cloud
+docker/certs/
+backups/
+private_storage/
+*.sqlite3
+*.log
+
+# ไฟล์ที่ build
+staticfiles/
+.coverage
+htmlcov/
+
+# Editor
+.idea/
+.DS_Store
+Thumbs.db
+test-result.txt
+
+web-log.txt
+test-result.txt*
+.vscode/

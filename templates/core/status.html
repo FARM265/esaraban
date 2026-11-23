@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}สถานะระบบ{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">สถานะระบบ</h1>
+    <p class="page-sub">ตรวจความพร้อมของสภาพแวดล้อมจริง ณ ขณะที่เปิดหน้านี้</p>
+  </div>
+  {% if all_ok %}
+    <span class="status-pill ok">{% include "partials/icon.html" with name="check" %} พร้อมใช้งาน</span>
+  {% else %}
+    <span class="status-pill fail">{% include "partials/icon.html" with name="x" %} มีรายการที่ต้องแก้ไข</span>
+  {% endif %}
+</div>
+
+<div class="row g-3">
+  <div class="col-12 col-xl-8">
+    <section class="card-panel">
+      <h2 class="panel-title">รายการตรวจสอบ</h2>
+      <ul class="check-list">
+        {% for r in results %}
+          <li class="check-item {% if r.ok %}ok{% else %}fail{% endif %}">
+            {% if r.ok %}{% include "partials/icon.html" with name="check" %}{% else %}{% include "partials/icon.html" with name="x" %}{% endif %}
+            <div>
+              <div class="check-name">{{ r.name }}</div>
+              <div class="check-detail">{{ r.detail }}</div>
+            </div>
+            <span class="visually-hidden">{% if r.ok %}ผ่าน{% else %}ไม่ผ่าน{% endif %}</span>
+          </li>
+        {% endfor %}
+      </ul>
+    </section>
+  </div>
+  <div class="col-12 col-xl-4">
+    <section class="card-panel">
+      <h2 class="panel-title">สภาพแวดล้อม</h2>
+      <dl class="env-list">
+        <dt>Settings</dt><dd><code>{{ settings_module }}</code></dd>
+        <dt>DEBUG</dt><dd>{{ debug|yesno:"เปิด (เครื่องพัฒนา),ปิด" }}</dd>
+        <dt>Django</dt><dd>{{ django_version }}</dd>
+        <dt>Python</dt><dd>{{ python_version }}</dd>
+        <dt>ที่เก็บไฟล์</dt><dd>{% if storage_backend == "s3" %}คลาวด์ (S3){% else %}ดิสก์ของเครื่อง{% endif %}</dd>
+        <dt>IP ของท่านที่ระบบเห็น</dt><dd><code>{{ seen_ip|default:"-" }}</code><div class="small text-secondary">ต้องตรงกับ IP จริงของเครื่องท่าน ถ้าไม่ตรงให้ปรับค่า proxy ตามคู่มือ</div></dd>
+      </dl>
+    </section>
+    <section class="card-panel mt-3">
+      <h2 class="panel-title">โมดูลที่ติดตั้ง ({{ installed_modules|length }})</h2>
+      <ul class="module-list">
+        {% for m in installed_modules %}<li><code>{{ m }}</code></li>{% endfor %}
+      </ul>
+    </section>
+  </div>
+</div>
+{% endblock %}

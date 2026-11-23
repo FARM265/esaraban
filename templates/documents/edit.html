@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}แก้ไขเอกสาร{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <span class="small text-secondary"><a href="{% url 'documents:detail' doc.pk %}">{{ doc.registration.display_no|default:"เอกสาร" }}</a> / แก้ไขข้อมูล</span>
+    <h1 class="page-title">แก้ไขข้อมูลหนังสือ</h1>
+    <p class="page-sub">เลขทะเบียนและไฟล์แก้ไม่ได้ การแก้ไขทุกครั้งถูกบันทึกในประวัติ</p>
+  </div>
+</div>
+<form method="post" class="card-panel" style="max-width: 900px" novalidate>
+  {% csrf_token %}
+  {% include "partials/form_errors.html" %}
+  <div class="row">
+    <div class="col-12 col-md-6">{% include "partials/field.html" with field=form.source_doc_no %}</div>
+    <div class="col-12 col-md-6">{% include "partials/field.html" with field=form.source_doc_date %}</div>
+    <div class="col-12">{% include "partials/field.html" with field=form.source_org %}</div>
+    <div class="col-12">{% include "partials/field.html" with field=form.subject %}</div>
+    <div class="col-12 col-md-6">{% include "partials/field.html" with field=form.recipient %}</div>
+    <div class="col-12 col-md-6">{% include "partials/field.html" with field=form.owner_department %}</div>
+    <fieldset class="col-12 col-md-6 mb-3">
+      <legend class="form-label fw-medium fs-6">ความเร่งด่วน</legend>
+      <div class="choice-row">{{ form.urgency }}</div>
+    </fieldset>
+    <fieldset class="col-12 col-md-6 mb-3">
+      <legend class="form-label fw-medium fs-6">ชั้นความลับ</legend>
+      <div class="choice-row">{{ form.secrecy }}</div>
+      {% for err in form.secrecy.errors %}<div class="text-danger small">{{ err }}</div>{% endfor %}
+    </fieldset>
+    <div class="col-12 col-md-6">{% include "partials/field.html" with field=form.due_date %}</div>
+    <div class="col-12 col-md-6">{% include "partials/field.html" with field=form.note %}</div>
+  </div>
+  <div class="d-flex gap-2 justify-content-end">
+    <a class="btn btn-outline-secondary" href="{% url 'documents:detail' doc.pk %}">ยกเลิก</a>
+    <button type="submit" class="btn btn-navy px-4">บันทึก</button>
+  </div>
+</form>
+{% endblock %}

@@ -1,0 +1,93 @@
+{% load static %}<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}E-Saraban{% endblock %} · {{ ORG_NAME }}</title>
+  <link rel="stylesheet" href="{% static 'vendor/bootstrap/bootstrap.min.css' %}?v={{ ASSET_VERSION }}">
+  <link rel="stylesheet" href="{% static 'css/fonts.css' %}?v={{ ASSET_VERSION }}">
+  <link rel="stylesheet" href="{% static 'css/esaraban.css' %}?v={{ ASSET_VERSION }}">
+  <link rel="icon" type="image/png" href="{% static 'img/favicon.png' %}?v={{ ASSET_VERSION }}">
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+  <a class="visually-hidden-focusable skip-link" href="#main">ข้ามไปยังเนื้อหา</a>
+
+  {% if IS_TEST_SYSTEM %}
+  <div class="test-banner" role="note">ระบบทดลอง · ห้ามใช้ข้อมูลจริงหรือข้อมูลลับของสำนักงาน</div>
+  {% endif %}
+
+  <div class="app-shell">
+    <aside class="offcanvas-lg offcanvas-start app-sidebar" tabindex="-1" id="sidebar" aria-label="เมนูหลัก">
+      <div class="sidebar-brand">
+        <img class="brand-emblem" src="{% static 'img/nacc-emblem.png' %}?v={{ ASSET_VERSION }}" alt="ตราสำนักงาน ป.ป.ช." width="64" height="96">
+        <div>
+          <div class="brand-name">ระบบสารบรรณอิเล็กทรอนิกส์</div>
+          <div class="brand-sub">{{ ORG_NAME }}{% if ORG_UNIT %}<br>{{ ORG_UNIT }}{% endif %}</div>
+        </div>
+        <button type="button" class="btn-close btn-close-white d-lg-none" data-bs-dismiss="offcanvas" data-bs-target="#sidebar" aria-label="ปิดเมนู"></button>
+      </div>
+      <nav>
+        {% for group in nav_menu %}
+          <div class="nav-group">
+            <div class="nav-group-label">{{ group.label }}</div>
+            {% for item in group.items %}
+              <a class="nav-item-link{% if item.active %} active{% endif %}" href="{{ item.url }}"{% if item.active %} aria-current="page"{% endif %}>
+                {% include "partials/icon.html" with name=item.icon %}
+                <span>{{ item.label }}</span>
+                {% if item.badge %}<span class="nav-badge" title="รอท่าน {{ item.badge }} เรื่อง"><span class="visually-hidden">รอท่าน </span>{% if item.badge > 99 %}99+{% else %}{{ item.badge }}{% endif %}<span class="visually-hidden"> เรื่อง</span></span>{% endif %}
+              </a>
+            {% endfor %}
+          </div>
+        {% empty %}
+          <p class="nav-empty">ยังไม่มีเมนูที่ท่านใช้งานได้</p>
+        {% endfor %}
+      </nav>
+      {% if user.is_authenticated %}
+      <div class="sidebar-user">
+        <div class="avatar" aria-hidden="true">{{ user.display_name_th|slice:":2" }}</div>
+        <a class="text-truncate sidebar-user-link" href="{% url 'accounts:profile' %}">
+          <div class="user-name text-truncate">{{ user.display_name_th }}</div>
+          <div class="user-sub text-truncate">{{ user.position|default:user.username }}</div>
+        </a>
+        <a class="btn-bell ms-auto" href="{% url 'notifications:index' %}" title="การแจ้งเตือน" aria-label="การแจ้งเตือน{% if UNREAD_NOTIFICATIONS %} ยังไม่อ่าน {{ UNREAD_NOTIFICATIONS }} รายการ{% endif %}">
+          {% include "partials/icon.html" with name="bell" %}{% if UNREAD_NOTIFICATIONS %}<span class="bell-count" aria-hidden="true">{% if UNREAD_NOTIFICATIONS > 99 %}99+{% else %}{{ UNREAD_NOTIFICATIONS }}{% endif %}</span>{% endif %}
+        </a>
+        <form method="post" action="{% url 'accounts:logout' %}">
+          {% csrf_token %}
+          <button type="submit" class="btn-logout" aria-label="ออกจากระบบ" title="ออกจากระบบ">{% include "partials/icon.html" with name="logout" %}</button>
+        </form>
+      </div>
+      {% endif %}
+    </aside>
+
+    <div class="app-main">
+      <header class="app-topbar d-lg-none">
+        <button class="btn btn-navy" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebar" aria-controls="sidebar" aria-label="เปิดเมนู">
+          {% include "partials/icon.html" with name="menu" %}
+        </button>
+        <img class="topbar-emblem" src="{% static 'img/nacc-emblem.png' %}?v={{ ASSET_VERSION }}" alt="" width="23" height="34">
+        <span class="fw-bold">ระบบสารบรรณอิเล็กทรอนิกส์</span>
+        {% if user.is_authenticated %}
+        <a class="btn-bell ms-auto" href="{% url 'notifications:index' %}" aria-label="การแจ้งเตือน{% if UNREAD_NOTIFICATIONS %} ยังไม่อ่าน {{ UNREAD_NOTIFICATIONS }} รายการ{% endif %}">
+          {% include "partials/icon.html" with name="bell" %}{% if UNREAD_NOTIFICATIONS %}<span class="bell-count" aria-hidden="true">{% if UNREAD_NOTIFICATIONS > 99 %}99+{% else %}{{ UNREAD_NOTIFICATIONS }}{% endif %}</span>{% endif %}
+        </a>
+        {% endif %}
+      </header>
+
+      <main id="main" class="app-content">
+        {% if messages %}
+          {% for message in messages %}
+            <div class="alert alert-{{ message.tags|default:'info' }}" role="alert">{{ message }}</div>
+          {% endfor %}
+        {% endif %}
+        {% block content %}{% endblock %}
+      </main>
+      {% include "partials/credit.html" %}
+    </div>
+  </div>
+
+  <script src="{% static 'vendor/bootstrap/bootstrap.bundle.min.js' %}?v={{ ASSET_VERSION }}"></script>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

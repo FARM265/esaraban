@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% block title %}ลงปฏิทิน{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div style="min-width:0">
+    {% if doc %}
+    <span class="small text-secondary"><a href="{% url 'documents:detail' doc.pk %}">{{ doc.registration.display_no|default:"เอกสาร" }}</a> / ลงปฏิทิน</span>
+    <h1 class="page-title mt-1">ลงปฏิทิน</h1>
+    <p class="page-sub text-truncate">จากไฟล์ {{ attachment.original_name }}</p>
+    {% else %}
+    <h1 class="page-title">ลงปฏิทินจากไฟล์</h1>
+    <p class="page-sub">อัปโหลดหนังสือเชิญประชุมหรือนัดหมาย ระบบจะอ่านชื่องาน วันที่ เวลา สถานที่ และเรื่องให้ตรวจก่อนลงปฏิทิน</p>
+    {% endif %}
+  </div>
+  {% if doc %}<a class="btn btn-outline-secondary" href="{% url 'documents:detail' doc.pk %}">กลับหน้าเอกสาร</a>{% endif %}
+</div>
+
+{% if google_url %}
+<div class="cal-ready card-panel mb-3" role="status">
+  <div style="min-width:0">
+    <h2 class="panel-title mb-2">พร้อมเพิ่มลง Google Calendar</h2>
+    <ol class="cal-steps mb-2">
+      {% if doc %}<li><a href="{% url 'documents:file' attachment.pk %}?download=1">ดาวน์โหลดไฟล์หนังสือ</a> ไว้ในเครื่องก่อน (ถ้าต้องการแนบไฟล์)</li>{% endif %}
+      <li>กด <strong>เปิด Google Calendar</strong> ตรวจข้อมูลอีกครั้ง</li>
+      <li>แนบไฟล์: ที่หน้า Google กดไอคอน <strong>คลิปหนีบกระดาษ</strong> (เพิ่มไฟล์แนบ) เหนือช่องคำอธิบาย &gt; <strong>Upload</strong> &gt; เลือกไฟล์{% if doc %}ที่ดาวน์โหลดไว้{% else %}หนังสือในเครื่องของท่าน{% endif %}</li>
+      <li>กด <strong>บันทึก</strong> ที่หน้า Google</li>
+    </ol>
+    {% if doc %}<p class="mb-1 small text-secondary">ในคำอธิบายของนัดหมายมีลิงก์กลับมาที่หนังสือในระบบด้วย ผู้เปิดต้องเข้าสู่ระบบและมีสิทธิ์จึงจะเห็น</p>{% endif %}
+    <p class="mb-0 small text-secondary">ไฟล์ที่แนบจะถูกเก็บใน Google Drive ของท่าน ไม่ใช่ในระบบ ถ้า Google ขึ้นข้อผิดพลาด ให้เข้าสู่ระบบ Google ในเบราว์เซอร์นี้ก่อนแล้วกดอีกครั้ง</p>
+  </div>
+  <a class="btn btn-navy text-nowrap" href="{{ google_url }}" target="_blank" rel="noopener noreferrer">เปิด Google Calendar</a>
+</div>
+{% endif %}
+
+{% if not form %}
+<section class="card-panel" style="max-width:640px">
+  {% include "partials/form_errors.html" with form=upload_form %}
+  <form method="post" enctype="multipart/form-data" novalidate>
+    {% csrf_token %}
+    {% include "partials/field.html" with field=upload_form.file %}
+    {% include "partials/field.html" with field=upload_form.force_ocr %}
+    <p class="small text-secondary">ไฟล์ที่อัปโหลดใช้อ่านข้อมูลเท่านั้น ไม่ถูกเก็บในระบบ ถ้าเป็นหนังสือที่ลงทะเบียนแล้ว ให้กด "ลงปฏิทิน" ที่หน้าเอกสารแทน</p>
+    <button type="submit" class="btn btn-navy">อ่านข้อมูลจากไฟล์</button>
+  </form>
+</section>
+{% else %}
+<div class="row g-3">
+  <div class="col-12 col-xl-7">
+    <section class="card-panel">
+      <h2 class="panel-title">ตรวจข้อมูลก่อนลงปฏิทิน</h2>
+      {% for n in notes %}<div class="sig-type-note">{{ n }}</div>{% endfor %}
+      {% if ocr_url %}<p class="small mb-3">ข้อมูลเพี้ยนหรือไม่ครบ? <a href="{{ ocr_url }}">อ่านใหม่จากภาพ (OCR)</a></p>{% endif %}
+      {% include "partials/form_errors.html" %}
+      <form method="post" novalidate>
+        {% csrf_token %}
+        {% if doc %}<input type="hidden" name="file" value="{{ attachment.pk }}">{% endif %}
+        <input type="hidden" name="snippet" value="{{ snippet }}">
+        {% include "partials/field.html" with field=form.title %}
+        <div class="row g-2">
+          <div class="col-sm-6">{% include "partials/field.html" with field=form.start_date %}</div>
+          <div class="col-sm-6">{% include "partials/field.html" with field=form.end_date %}</div>
+          <div class="col-sm-6">{% include "partials/field.html" with field=form.start_time %}</div>
+          <div class="col-sm-6">{% include "partials/field.html" with field=form.end_time %}</div>
+        </div>
+        {% include "partials/field.html" with field=form.location %}
+        {% include "partials/field.html" with field=form.subject %}
+        {% include "partials/field.html" with field=form.details %}
+        {% if form.not_secret %}{% include "partials/field.html" with field=form.not_secret %}{% endif %}
+        <div class="d-flex flex-wrap gap-2">
+          {% if secret %}
+          <button type="submit" name="action" value="ics" class="btn btn-navy">ดาวน์โหลดไฟล์ .ics</button>
+          {% else %}
+          <button type="submit" name="action" value="google" class="btn btn-navy">เพิ่มลง Google Calendar</button>
+          <button type="submit" name="action" value="ics" class="btn btn-outline-secondary">ดาวน์โหลดไฟล์ .ics</button>
+          {% endif %}
+        </div>
+        {% if secret %}
+        <p class="small text-secondary mt-2 mb-0">หนังสือชั้นความลับส่งข้อมูลไป Google ไม่ได้ ไฟล์ .ics นำเข้าปฏิทินบนเครื่องของท่านได้ (Outlook, ปฏิทินบนมือถือ)</p>
+        {% else %}
+        <p class="small text-secondary mt-2 mb-0">ไฟล์ .ics ใช้นำเข้า Outlook หรือปฏิทินบนมือถือได้ ทุกการส่งออกบันทึกใน Audit Log</p>
+        {% endif %}
+      </form>
+    </section>
+  </div>
+  <div class="col-12 col-xl-5">
+    <section class="card-panel">
+      <h2 class="panel-title">ข้อความที่ใช้หาวันที่</h2>
+      {% if snippet %}
+      <p class="cal-snippet mb-2">{{ snippet }}</p>
+      <p class="small text-secondary mb-0">ระบบเลือกวันที่ใกล้คำว่า "ในวัน...ที่" และ "เวลา" และข้ามวันที่ของตัวหนังสือ (ลงวันที่) ถ้าไม่ถูกต้องให้แก้ในฟอร์ม</p>
+      {% else %}
+      <p class="text-secondary mb-0">ไม่มีข้อความให้แสดง กรุณากรอกข้อมูลจากหนังสือเอง</p>
+      {% endif %}
+    </section>
+    {% if not doc %}
+    <a class="btn btn-outline-secondary mt-3" href="{% url 'documents:calendar_upload' %}">อ่านไฟล์อื่น</a>
+    {% endif %}
+  </div>
+</div>
+{% endif %}
+{% endblock %}

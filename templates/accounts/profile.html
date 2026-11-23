@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% load thai_date %}
+{% block title %}บัญชีของฉัน{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">บัญชีของฉัน</h1>
+    <p class="page-sub">{{ user.display_name_th }} · {{ user.username }}</p>
+  </div>
+</div>
+<div class="row g-3">
+  <div class="col-12 col-xl-6">
+    <section class="card-panel h-100">
+      <h2 class="panel-title">ข้อมูลผู้ใช้</h2>
+      <dl class="env-list">
+        <dt>ตำแหน่ง</dt><dd>{{ user.position|default:"-" }}</dd>
+        <dt>กลุ่มงาน</dt><dd>{{ user.department|default:"-" }}</dd>
+        <dt>ระดับชั้นความลับ</dt><dd>{{ user.get_clearance_level_display }}</dd>
+        <dt>บทบาท</dt>
+        <dd>
+          {% for a in assignments %}<span class="es-badge info me-1 mb-1">{{ a }}</span>{% empty %}ยังไม่มีบทบาท ติดต่อผู้ดูแลระบบ{% endfor %}
+        </dd>
+        <dt>สิทธิ์ที่ทำได้</dt>
+        <dd>{{ capabilities|join:", "|default:"-" }}</dd>
+      </dl>
+    </section>
+  </div>
+  <div class="col-12 col-xl-6">
+    <section class="card-panel h-100">
+      <h2 class="panel-title">ความปลอดภัย</h2>
+      <dl class="env-list mb-3">
+        <dt>รหัสผ่าน</dt><dd><a href="{% url 'accounts:password_change' %}">เปลี่ยนรหัสผ่าน</a></dd>
+        <dt>MFA</dt>
+        <dd>{% if user.mfa_enabled %}<span class="es-badge ok">เปิดใช้งาน</span> ตั้งค่าเมื่อ {{ user.mfa_confirmed_at|thai_datetime }}{% else %}<span class="es-badge bad">ยังไม่ตั้งค่า</span>{% endif %}</dd>
+        <dt>รหัสสำรอง</dt>
+        <dd>เหลือ {{ backup_left }} รหัส{% if backup_left < 3 %} <span class="es-badge bad">ควรสร้างใหม่</span>{% endif %}</dd>
+      </dl>
+      <form method="post" action="{% url 'accounts:regenerate_backup_codes' %}" class="border-top pt-3">
+        {% csrf_token %}
+        <label for="regen-code" class="form-label fw-medium">สร้างรหัสสำรองชุดใหม่</label>
+        <div class="form-text mb-2">รหัสชุดเดิมจะใช้ไม่ได้ทันที ต้องยืนยันด้วยรหัส 6 หลักจากแอป</div>
+        <div class="d-flex gap-2">
+          <input id="regen-code" name="code" class="form-control" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="000000" required>
+          <button type="submit" class="btn btn-navy px-3 text-nowrap">สร้างใหม่</button>
+        </div>
+      </form>
+    </section>
+  </div>
+</div>
+{% endblock %}

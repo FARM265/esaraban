@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% load thai_date %}
+{% block title %}ภาพรวม{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">ภาพรวม</h1>
+    <p class="page-sub">{% if can_list %}เฉพาะเอกสารที่ท่านมีสิทธิ์{% else %}ตัวเลขรวมทั้งสำนักงาน (บทบาทของท่านไม่แสดงชื่อเรื่อง){% endif %} · ข้อมูล ณ {{ today|thai_date:"full" }}</p>
+  </div>
+  {% if my_tasks %}<a class="btn btn-navy" href="{% url 'workflow:my_tasks' %}">งานรอฉัน {{ my_tasks }} เรื่อง</a>{% endif %}
+</div>
+
+<div class="kpi-grid mb-3">
+  <div class="kpi"><div class="kpi-label">หนังสือรับเดือนนี้</div><div class="kpi-value">{{ kpi.received_month }}</div></div>
+  <div class="kpi"><div class="kpi-label">หนังสือออกเลขเดือนนี้</div><div class="kpi-value">{{ kpi.sent_month }}</div></div>
+  <div class="kpi"><div class="kpi-label">อยู่ระหว่างเสนอ</div><div class="kpi-value">{{ kpi.in_review }}</div></div>
+  <div class="kpi"><div class="kpi-label">อยู่ระหว่างดำเนินการ</div><div class="kpi-value">{{ kpi.in_progress }}</div></div>
+  <div class="kpi{% if kpi.overdue_tasks or kpi.overdue_docs %} kpi-alert{% endif %}">
+    <div class="kpi-label">เกินกำหนด</div>
+    <div class="kpi-value">{{ kpi.overdue_tasks|add:kpi.overdue_docs }}</div>
+    <div class="kpi-sub">{% if kpi.overdue_tasks or kpi.overdue_docs %}{% include "partials/icon.html" with name="activity" %} {% endif %}งาน {{ kpi.overdue_tasks }} · เรื่อง {{ kpi.overdue_docs }}</div>
+  </div>
+  <div class="kpi"><div class="kpi-label">เวลาเฉลี่ยจนเสร็จ (90 วัน)</div>
+    <div class="kpi-value">{% if kpi.avg_days is not None %}{{ kpi.avg_days }}<span class="kpi-unit"> วัน</span>{% else %}-{% endif %}</div></div>
+</div>
+
+<div class="row g-3">
+  <div class="col-12 col-xl-7">
+    <section class="card-panel h-100">
+      <h2 class="panel-title">หนังสือรับและหนังสือออกเลข 6 เดือนล่าสุด</h2>
+      <div class="chart-legend" aria-hidden="true">
+        <span><i class="swatch s1"></i>รับ</span><span><i class="swatch s2"></i>ออกเลข</span>
+      </div>
+      <div class="month-chart" role="img" aria-label="กราฟแท่งจำนวนหนังสือรับและหนังสือออกเลขรายเดือน ดูตัวเลขได้ในตารางด้านล่าง">
+        {% for m in monthly %}
+        <div class="month-col">
+          <div class="month-bars">
+            <div class="vbar s1" style="height: {{ m.received_pct }}%" tabindex="0" data-tip="{{ m.label }} รับ {{ m.received }}"><span>{{ m.received }}</span></div>
+            <div class="vbar s2" style="height: {{ m.sent_pct }}%" tabindex="0" data-tip="{{ m.label }} ออกเลข {{ m.sent }}"><span>{{ m.sent }}</span></div>
+          </div>
+          <div class="month-label">{{ m.label }}</div>
+        </div>
+        {% endfor %}
+      </div>
+      <details class="mt-2 small">
+        <summary>ดูเป็นตาราง</summary>
+        <table class="table table-sm mt-2 mb-0">
+          <thead><tr><th>เดือน</th><th class="text-end">รับ</th><th class="text-end">ออกเลข</th></tr></thead>
+          <tbody>{% for m in monthly %}<tr><td>{{ m.label }}</td><td class="text-end">{{ m.received }}</td><td class="text-end">{{ m.sent }}</td></tr>{% endfor %}</tbody>
+        </table>
+      </details>
+    </section>
+  </div>
+  <div class="col-12 col-xl-5 d-flex flex-column gap-3">
+    <section class="card-panel">
+      <h2 class="panel-title">จำนวนเรื่องตามสถานะ</h2>
+      {% for b in by_status %}
+      <div class="hbar-row" tabindex="0" data-tip="{{ b.label }} {{ b.n }} เรื่อง">
+        <span class="hbar-label">{{ b.label }}</span>
+        <span class="hbar-track"><span class="hbar" style="width: {{ b.pct }}%"></span></span>
+        <span class="hbar-value">{{ b.n }}</span>
+      </div>
+      {% empty %}<p class="text-secondary mb-0">ยังไม่มีเอกสาร</p>{% endfor %}
+    </section>
+    <section class="card-panel">
+      <h2 class="panel-title">เรื่องที่ยังไม่เสร็จ แยกตามกลุ่มงาน</h2>
+      {% for b in by_department %}
+      <div class="hbar-row" tabindex="0" data-tip="{{ b.label }} {{ b.n }} เรื่อง">
+        <span class="hbar-label">{{ b.label }}</span>
+        <span class="hbar-track"><span class="hbar" style="width: {{ b.pct }}%"></span></span>
+        <span class="hbar-value">{{ b.n }}</span>
+      </div>
+      {% empty %}<p class="text-secondary mb-0">ไม่มีเรื่องค้าง</p>{% endfor %}
+    </section>
+  </div>
+</div>
+
+{% if can_list %}
+<section class="card-panel mt-3">
+  <h2 class="panel-title">งานที่เกินกำหนด</h2>
+  {% if overdue_list %}
+  <div class="table-responsive">
+    <table class="table align-middle mb-0">
+      <thead><tr><th>เลขทะเบียน</th><th>เรื่อง</th><th>อยู่ที่</th><th>กำหนด</th><th class="text-end">เกิน</th></tr></thead>
+      <tbody>
+        {% for r in overdue_list %}
+        <tr>
+          <td class="text-nowrap"><a href="{% url 'documents:detail' r.document.pk %}">{{ r.document.registration.display_no|default:"ร่าง" }}</a></td>
+          <td>{{ r.document.subject }}</td>
+          <td>{{ r.holder }}<div class="small text-secondary">{{ r.task.get_kind_display }}</div></td>
+          <td class="text-nowrap">{{ r.task.due_at|thai_datetime }}</td>
+          <td class="text-end text-nowrap"><span class="es-badge bad">{% if r.late_days %}{{ r.late_days }} วัน{% else %}ไม่ถึงวัน{% endif %}</span></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <a class="small" href="{% url 'reports:search' %}?overdue=on">ดูเรื่องเกินกำหนดทั้งหมด</a>
+  {% else %}<p class="text-secondary mb-0">ไม่มีงานเกินกำหนด</p>{% endif %}
+</section>
+{% endif %}
+{% endblock %}

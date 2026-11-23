@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% load thai_date %}
+{% block title %}{{ target.username }}{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <span class="small text-secondary"><a href="{% url 'accounts:user_list' %}">ผู้ใช้และสิทธิ์</a> / {{ target.username }}</span>
+    <h1 class="page-title">{{ target.display_name_th }}</h1>
+    <p class="page-sub">
+      {% if target.is_active %}<span class="es-badge ok">ใช้งาน</span>{% else %}<span class="es-badge bad">ระงับ</span>{% endif %}
+      {% if target.mfa_enabled %}<span class="es-badge ok">MFA ตั้งค่าแล้ว</span>{% else %}<span class="es-badge">ยังไม่ตั้ง MFA</span>{% endif %}
+      {% if target.must_change_password %}<span class="es-badge info">รอเปลี่ยนรหัสผ่าน</span>{% endif %}
+      {% if target.last_login %}<span class="ms-1">เข้าสู่ระบบล่าสุด {{ target.last_login|thai_datetime }}</span>{% endif %}
+    </p>
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-12 col-xl-7">
+    <form method="post" class="card-panel" novalidate>
+      {% csrf_token %}
+      <h2 class="panel-title">ข้อมูลผู้ใช้</h2>
+      {% include "partials/form_errors.html" with form=edit_form %}
+      <div class="row">
+        {% for field in edit_form %}<div class="col-12 col-md-6">{% include "partials/field.html" %}</div>{% endfor %}
+      </div>
+      <div class="text-end"><button type="submit" class="btn btn-navy px-4">บันทึกข้อมูล</button></div>
+    </form>
+
+    <section class="card-panel mt-3">
+      <h2 class="panel-title">บทบาท</h2>
+      <div class="table-responsive">
+        <table class="table align-middle">
+          <thead><tr><th>บทบาท</th><th>ขอบเขต</th><th>ช่วงเวลา</th><th><span class="visually-hidden">การทำงาน</span></th></tr></thead>
+          <tbody>
+            {% for a in assignments %}
+            <tr>
+              <td class="fw-semibold">{{ a.role.name_th }}</td>
+              <td>{{ a.department|default:"ทั้งสำนักงาน" }}</td>
+              <td class="small">{{ a.valid_from|thai_date }} – {% if a.valid_to %}{{ a.valid_to|thai_date }}{% else %}ไม่กำหนด{% endif %}</td>
+              <td class="text-end">
+                <form method="post" action="{% url 'accounts:user_role_remove' target.pk a.pk %}" onsubmit="return confirm('ยืนยันยกเลิกบทบาทนี้?')">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-sm btn-outline-danger">ยกเลิก</button>
+                </form>
+              </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4" class="text-secondary">ยังไม่มีบทบาท ผู้ใช้จะเข้าสู่ระบบได้แต่ทำอะไรไม่ได้</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <form method="post" action="{% url 'accounts:user_role_add' target.pk %}" class="border-top pt-3" novalidate>
+        {% csrf_token %}
+        <div class="row g-2 align-items-end">
+          <div class="col-12 col-md-3">{% include "partials/field.html" with field=role_form.role %}</div>
+          <div class="col-12 col-md-3">{% include "partials/field.html" with field=role_form.department %}</div>
+          <div class="col-6 col-md-2">{% include "partials/field.html" with field=role_form.valid_from %}</div>
+          <div class="col-6 col-md-2">{% include "partials/field.html" with field=role_form.valid_to %}</div>
+          <div class="col-12 col-md-2 mb-3"><button type="submit" class="btn btn-navy w-100">เพิ่มบทบาท</button></div>
+        </div>
+      </form>
+    </section>
+  </div>
+
+  <div class="col-12 col-xl-5">
+    <section class="card-panel">
+      <h2 class="panel-title">ตั้งรหัสผ่านชั่วคราว</h2>
+      <form method="post" action="{% url 'accounts:user_set_password' target.pk %}" novalidate>
+        {% csrf_token %}
+        {% include "partials/field.html" with field=password_form.password1 %}
+        {% include "partials/field.html" with field=password_form.password2 %}
+        <button type="submit" class="btn btn-navy">ตั้งรหัสผ่านชั่วคราว</button>
+      </form>
+    </section>
+
+    <section class="card-panel mt-3">
+      <h2 class="panel-title">MFA</h2>
+      <p class="text-secondary small">ใช้เมื่อผู้ใช้เปลี่ยนหรือทำมือถือหาย ผู้ใช้จะต้องสแกน QR ใหม่ในการเข้าสู่ระบบครั้งถัดไป รหัสสำรองเดิมจะใช้ไม่ได้
+        {% if target.mfa_enabled %}(ปัจจุบันเหลือรหัสสำรอง {{ backup_left }} รหัส){% endif %}</p>
+      <form method="post" action="{% url 'accounts:user_reset_mfa' target.pk %}" onsubmit="return confirm('ยืนยันรีเซ็ต MFA ของผู้ใช้นี้?')">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-outline-danger"{% if not target.mfa_enabled %} disabled{% endif %}>รีเซ็ต MFA</button>
+      </form>
+    </section>
+
+    <section class="card-panel mt-3">
+      <h2 class="panel-title">สถานะบัญชี</h2>
+      {% if is_self %}
+        <p class="text-secondary small mb-0">ไม่สามารถระงับบัญชีของตัวเองได้</p>
+      {% else %}
+        <p class="text-secondary small">บัญชีที่ระงับจะเข้าสู่ระบบไม่ได้ ข้อมูลและประวัติทั้งหมดยังอยู่ ระบบไม่ลบผู้ใช้</p>
+        <form method="post" action="{% url 'accounts:user_toggle_active' target.pk %}" onsubmit="return confirm('ยืนยันการเปลี่ยนสถานะบัญชี?')">
+          {% csrf_token %}
+          {% if target.is_active %}
+            <button type="submit" class="btn btn-outline-danger">ระงับบัญชี</button>
+          {% else %}
+            <button type="submit" class="btn btn-navy">เปิดใช้งานบัญชี</button>
+          {% endif %}
+        </form>
+      {% endif %}
+    </section>
+  </div>
+</div>
+{% endblock %}

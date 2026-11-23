@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}เส้นทางการเสนอ{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">เส้นทางการเสนอ</h1>
+    <p class="page-sub">การแก้ไขมีผลกับเรื่องที่เริ่มเสนอใหม่เท่านั้น เรื่องที่กำลังเสนออยู่ใช้เส้นทางเดิมต่อไป</p>
+  </div>
+  <a class="btn btn-navy px-3 d-flex align-items-center" href="{% url 'workflow:template_create' %}">+ สร้างเส้นทาง</a>
+</div>
+<div class="row g-3">
+  {% for tpl in templates %}
+  <div class="col-12 col-xl-6">
+    <section class="card-panel h-100">
+      <div class="d-flex justify-content-between align-items-start gap-2">
+        <div>
+          <h2 class="panel-title mb-1">{{ tpl.name }}</h2>
+          <div class="small text-secondary mb-2">{{ tpl.get_doc_kind_display }} · {% if tpl.is_active %}<span class="es-badge ok">ใช้งาน</span>{% else %}<span class="es-badge">ปิดใช้งาน</span>{% endif %}</div>
+        </div>
+        <a class="btn btn-sm btn-outline-secondary" href="{% url 'workflow:template_edit' tpl.pk %}">แก้ไข</a>
+      </div>
+      <ol class="mb-0">
+        <li class="text-secondary">เจ้าหน้าที่สารบรรณลงรับและเริ่มเสนอ</li>
+        {% for s in tpl.steps.all %}
+        <li><strong>{{ s.get_role_display }}</strong> {{ s.get_kind_display }} <span class="small text-secondary">· {{ s.get_scope_display }} · {{ s.sla_hours }} ชม.</span></li>
+        {% endfor %}
+        <li class="text-secondary">ผู้รับผิดชอบที่ได้รับสั่งการ</li>
+      </ol>
+    </section>
+  </div>
+  {% empty %}
+  <div class="col-12"><section class="card-panel"><p class="mb-0">ยังไม่มีเส้นทาง</p></section></div>
+  {% endfor %}
+</div>
+{% endblock %}

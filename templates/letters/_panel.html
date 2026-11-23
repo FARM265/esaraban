@@ -1,0 +1,31 @@
+{% load thai_date %}
+{% if letter %}
+<section class="card-panel">
+  <h2 class="panel-title">{{ doc.get_kind_display }}จากแม่แบบ</h2>
+  <a class="btn btn-outline-secondary w-100 mb-1" href="{% url 'letters:docx' doc.pk %}">ดาวน์โหลดไฟล์ Word (.docx)</a>
+  <p class="small text-secondary mb-3">สร้างจากข้อความ{% if doc.registration %} พร้อมเลขที่และวันที่{% endif %} ใช้ฟอนต์ TH SarabunPSK 16 ไม่มีลายมือชื่อและข้อความสั่งการ/เกษียน ฉบับทางการคือไฟล์ PDF</p>
+  {% if doc.registration %}
+    <p class="mb-1">เลขที่ <strong>{{ doc.registration.display_no }}</strong>{% if letter.letter_date %} · ลงวันที่ {{ letter.letter_date|thai_date:"full" }}{% endif %}</p>
+    <p class="small text-secondary mb-0">ออกเลขแล้ว เนื้อหาแก้ไขไม่ได้ ถ้าต้องยกเลิกให้ยกเลิกเลขที่เมนูทะเบียนเลขหนังสือ</p>
+  {% else %}
+    <p class="mb-2"><span class="es-badge info">ร่าง</span> ยังไม่มีเลขที่ · แก้ไขแล้ว {{ letter.revision|add:"-1" }} ครั้ง</p>
+    {% if letter_can_revise %}
+      <a class="btn btn-outline-secondary w-100 mb-2" href="{% url 'letters:revise' doc.pk %}">แก้ไขร่าง</a>
+    {% endif %}
+    {% if letter_issue_form %}
+      <form method="post" action="{% url 'letters:issue' doc.pk %}" class="border-top pt-2 mt-1" data-role="issue-form">
+        {% csrf_token %}
+        <label for="{{ letter_issue_form.book.id_for_label }}" class="form-label fw-medium">ออกเลขจาก</label>
+        {{ letter_issue_form.book }}
+        <button type="submit" class="btn btn-navy w-100 mt-2">ออกเลขหนังสือ</button>
+        <p class="small text-secondary mt-2 mb-0">ระบบประทับเลขที่และวันที่วันนี้ลงบนไฟล์หลักล่าสุด (รวมฉบับที่ลงนามด้วยภาพลายมือชื่อแล้ว) เป็นไฟล์ใหม่ เลขที่ออกแล้วยกเลิกได้แต่ไม่ถูกลบ
+          <strong>ถ้าจะลงนามแบบดิจิทัล ต้องออกเลขก่อน</strong> เพราะประทับเลขหลังลงนามดิจิทัลไม่ได้</p>
+      </form>
+    {% elif letter_issue_no_book %}
+      <p class="small text-danger mb-0">ยังไม่มีชุดทะเบียนที่ใช้กับ{{ doc.get_kind_display }} กรุณาให้ผู้ดูแลระบบเปิดใช้งาน</p>
+    {% elif not letter_can_revise %}
+      <p class="small text-secondary mb-0">{% if doc.status == "IN_REVIEW" %}อยู่ระหว่างเสนอ เมื่อพิจารณาเสร็จเจ้าหน้าที่สารบรรณจึงออกเลขได้{% else %}เจ้าหน้าที่สารบรรณเป็นผู้ออกเลข{% endif %}</p>
+    {% endif %}
+  {% endif %}
+</section>
+{% endif %}

@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}กลุ่มงาน{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">กลุ่มงาน</h1>
+    <p class="page-sub">กลุ่มงานที่ระงับแล้วจะไม่แสดงในตัวเลือก แต่ข้อมูลเดิมยังอยู่ ระบบไม่ลบกลุ่มงาน</p>
+  </div>
+  <a class="btn btn-navy px-3 d-flex align-items-center" href="{% url 'accounts:department_create' %}">+ เพิ่มกลุ่มงาน</a>
+</div>
+<div class="table-panel">
+  <div class="table-responsive">
+    <table class="table align-middle">
+      <thead><tr><th class="ps-3">รหัส</th><th>ชื่อกลุ่มงาน</th><th>สังกัด</th><th>สถานะ</th></tr></thead>
+      <tbody>
+        {% for d in departments %}
+        <tr>
+          <td class="ps-3 fw-semibold"><a href="{% url 'accounts:department_edit' d.pk %}">{{ d.code }}</a></td>
+          <td>{{ d.name_th }}</td>
+          <td>{{ d.parent|default:"-" }}</td>
+          <td>{% if d.is_active %}<span class="es-badge ok">ใช้งาน</span>{% else %}<span class="es-badge bad">ระงับ</span>{% endif %}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4" class="text-center text-secondary py-4">ยังไม่มีกลุ่มงาน กด "เพิ่มกลุ่มงาน" เพื่อเริ่มต้น</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

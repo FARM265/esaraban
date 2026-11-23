@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% load thai_date %}
+{% block title %}มอบหมายปฏิบัติราชการแทน{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">มอบหมายปฏิบัติราชการแทน</h1>
+    <p class="page-sub">ผู้ได้รับมอบหมายทำงานในหน้าที่ของผู้มอบหมายได้ในช่วงวันที่ที่กำหนด ระบบบันทึกชื่อทั้งผู้มีหน้าที่และผู้ที่กดดำเนินการจริง</p>
+  </div>
+</div>
+<div class="row g-3">
+  <div class="col-12 col-xl-5">
+    <form method="post" class="card-panel" novalidate>
+      {% csrf_token %}
+      <h2 class="panel-title">มอบหมายใหม่</h2>
+      {% include "partials/form_errors.html" %}
+      {% for field in form %}{% include "partials/field.html" %}{% endfor %}
+      {% if not can_manage_all %}<p class="small text-secondary">ท่านมอบหมายได้เฉพาะงานในหน้าที่ของท่านเอง</p>{% endif %}
+      <p class="small text-secondary">ผู้ได้รับมอบหมายต้องมีสิทธิ์ชั้นความลับเพียงพอ จึงจะเห็นเอกสารลับของผู้มอบหมาย</p>
+      <button type="submit" class="btn btn-navy w-100">บันทึกการมอบหมาย</button>
+    </form>
+  </div>
+  <div class="col-12 col-xl-7">
+    <div class="table-panel">
+      <div class="table-responsive">
+        <table class="table align-middle">
+          <thead><tr><th class="ps-3">ผู้มอบหมาย → ผู้ปฏิบัติแทน</th><th>ช่วงเวลา</th><th>สถานะ</th><th><span class="visually-hidden">การทำงาน</span></th></tr></thead>
+          <tbody>
+            {% for d in delegations %}
+            <tr>
+              <td class="ps-3"><strong>{{ d.delegator.display_name_th }}</strong> → {{ d.delegate.display_name_th }}<div class="small text-secondary">{{ d.reason }}</div></td>
+              <td class="small text-nowrap">{{ d.start_date|thai_date }} – {{ d.end_date|thai_date }}</td>
+              <td>{% if d.revoked_at %}<span class="es-badge">ยุติแล้ว</span>{% elif d.is_active %}<span class="es-badge ok">มีผล</span>{% else %}<span class="es-badge info">ไม่อยู่ในช่วงเวลา</span>{% endif %}</td>
+              <td class="text-end">
+                {% if not d.revoked_at and d.end_date >= today %}
+                  {% if can_manage_all or d.delegator_id == user.pk %}
+                  <form method="post" action="{% url 'workflow:delegation_revoke' d.pk %}" onsubmit="return confirm('ยืนยันยุติการมอบหมายนี้?')">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-outline-danger">ยุติ</button>
+                  </form>
+                  {% endif %}
+                {% endif %}
+              </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4" class="text-center text-secondary py-4">ยังไม่มีการมอบหมาย</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

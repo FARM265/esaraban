@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block title %}ลงทะเบียนรับหนังสือ{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <span class="small text-secondary"><a href="{% url 'documents:list' %}">เอกสาร</a> / ลงทะเบียนรับ</span>
+    <h1 class="page-title">ลงทะเบียนรับหนังสือ</h1>
+  </div>
+</div>
+
+<form method="post" enctype="multipart/form-data" novalidate>
+  {% csrf_token %}
+  <div class="row g-3">
+    <div class="col-12 col-xl-8">
+      <section class="card-panel">
+        {% include "partials/form_errors.html" %}
+        <h2 class="panel-title">ไฟล์หนังสือ</h2>
+        <div class="row">
+          <div class="col-12 col-md-6">{% include "partials/field.html" with field=form.main_file %}</div>
+          <div class="col-12 col-md-6">{% include "partials/field.html" with field=form.extra_files %}</div>
+        </div>
+        <p class="form-text mt-0">PDF เท่านั้น ไฟล์ละไม่เกิน 20 MB รวมไม่เกิน 50 MB ระบบตรวจเนื้อไฟล์และเข้ารหัสก่อนจัดเก็บ</p>
+
+        <h2 class="panel-title mt-4">ข้อมูลหนังสือ</h2>
+        <div class="row">
+          <div class="col-12 col-md-6">{% include "partials/field.html" with field=form.book %}</div>
+          <div class="col-12 col-md-6">{% include "partials/field.html" with field=form.source_doc_no %}</div>
+          <div class="col-12 col-md-6">{% include "partials/field.html" with field=form.source_doc_date %}</div>
+          <div class="col-12 col-md-6">{% include "partials/field.html" with field=form.source_org %}</div>
+          <div class="col-12">{% include "partials/field.html" with field=form.subject %}</div>
+          <div class="col-12 col-md-6">{% include "partials/field.html" with field=form.recipient %}</div>
+          <div class="col-12 col-md-6">{% include "partials/field.html" with field=form.owner_department %}</div>
+        </div>
+
+        <div class="row">
+          <fieldset class="col-12 col-md-6 mb-3">
+            <legend class="form-label fw-medium fs-6">ความเร่งด่วน</legend>
+            <div class="choice-row">{{ form.urgency }}</div>
+            {% for err in form.urgency.errors %}<div class="text-danger small">{{ err }}</div>{% endfor %}
+          </fieldset>
+          <fieldset class="col-12 col-md-6 mb-3">
+            <legend class="form-label fw-medium fs-6">ชั้นความลับ</legend>
+            <div class="choice-row">{{ form.secrecy }}</div>
+            {% for err in form.secrecy.errors %}<div class="text-danger small">{{ err }}</div>{% endfor %}
+            <div class="form-text">เลือกได้ไม่เกินระดับสิทธิ์ของท่าน ชั้น "ลับที่สุด" ปิดไว้จนกว่าจะได้รับอนุญาต</div>
+          </fieldset>
+        </div>
+
+        <div class="row">
+          <div class="col-12 col-md-6">{% include "partials/field.html" with field=form.due_date %}</div>
+          <div class="col-12 col-md-6">{% include "partials/field.html" with field=form.note %}</div>
+        </div>
+
+        <div class="d-flex flex-wrap gap-2 justify-content-end border-top pt-3">
+          <a class="btn btn-outline-secondary" href="{% url 'documents:list' %}">ยกเลิก</a>
+          <button type="submit" class="btn btn-navy px-4">ลงทะเบียนรับและออกเลข</button>
+        </div>
+      </section>
+    </div>
+
+    <aside class="col-12 col-xl-4 d-flex flex-column gap-3">
+      {% if next_number %}
+      <section class="next-number">
+        <div class="small" style="color:#B9C7DD">เลขรับถัดไป (ประมาณการ)</div>
+        <div class="num">{{ next_number }}</div>
+        <p>เลขจริงออกเมื่อกดลงทะเบียนเท่านั้น หากมีผู้อื่นลงทะเบียนพร้อมกัน เลขอาจเลื่อนไป ระบบไม่มีวันออกเลขซ้ำ</p>
+      </section>
+      {% endif %}
+      <section class="card-panel">
+        <h2 class="panel-title">ระบบตรวจไฟล์อัตโนมัติ</h2>
+        <ul class="small mb-0 ps-3">
+          <li>เนื้อไฟล์ต้องเป็น PDF จริง ไม่ดูแค่นามสกุล</li>
+          <li>ไม่มี JavaScript หรือคำสั่งเปิดโปรแกรมฝังในไฟล์</li>
+          <li>ไม่ติดรหัสผ่าน</li>
+          <li>เข้ารหัสไฟล์ก่อนจัดเก็บ และเก็บ hash ไว้ตรวจว่าไฟล์ไม่ถูกแก้ไข</li>
+        </ul>
+      </section>
+      <section class="card-panel" style="background:#FFF8EB;border-color:#F5D08A">
+        <p class="small mb-0" style="color:#5C3A00">ลงทะเบียนแล้วแก้ไขข้อมูลได้ แต่ระบบเก็บประวัติทุกครั้ง เลขรับที่ออกแล้วยกเลิกได้โดยต้องระบุเหตุผลเท่านั้น</p>
+      </section>
+    </aside>
+  </div>
+</form>
+{% endblock %}

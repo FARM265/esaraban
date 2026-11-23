@@ -1,0 +1,6 @@
+# สคริปต์ที่รันใน Linux container ต้องใช้ LF เสมอ แม้แก้ไขบน Windows
+*.sh text eol=lf
+Dockerfile text eol=lf
+*.template text eol=lf
+# สคริปต์ PowerShell ใช้ CRLF
+*.ps1 text eol=crlf

@@ -1,0 +1,3 @@
+# แพ็กเกจสำหรับเครื่องพัฒนา (รวมของ server แล้ว)
+-r requirements.txt
+coverage>=7.6

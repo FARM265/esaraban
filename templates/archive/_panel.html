@@ -1,0 +1,43 @@
+{% load thai_date %}
+{% if archive_record %}
+<section class="card-panel">
+  <h2 class="panel-title">จัดเก็บแล้ว</h2>
+  <dl class="env-list mb-2">
+    <dt>หมวด/แฟ้ม</dt><dd>{{ archive_record.folder }}</dd>
+    <dt>อายุการเก็บ</dt><dd>{{ archive_record.get_retention_years_display }}{% if archive_record.keep_until %} (ถึง {{ archive_record.keep_until|thai_date }}){% endif %}</dd>
+    <dt>จัดเก็บโดย</dt><dd>{{ archive_record.archived_by.display_name_th }} · {{ archive_record.archived_at|thai_date }}</dd>
+    {% if archive_record.note %}<dt>หมายเหตุ</dt><dd style="white-space:pre-line">{{ archive_record.note }}</dd>{% endif %}
+  </dl>
+  <p class="small text-secondary mb-2">เรื่องที่จัดเก็บแล้วอ่านได้อย่างเดียว</p>
+  {% if release_form %}
+  <form method="post" action="{% url 'archive:release' doc.pk %}" class="border-top pt-2">
+    {% csrf_token %}
+    <label for="{{ release_form.reason.id_for_label }}" class="form-label fw-medium">{{ release_form.reason.label }}</label>
+    {{ release_form.reason }}
+    <button type="submit" class="btn btn-outline-secondary w-100 mt-2">นำออกจากคลัง</button>
+  </form>
+  {% endif %}
+</section>
+{% elif archive_form %}
+<section class="card-panel">
+  <h2 class="panel-title">จัดเก็บเข้าคลัง</h2>
+  <form method="post" action="{% url 'archive:archive' doc.pk %}">
+    {% csrf_token %}
+    <div class="mb-2">
+      <label for="{{ archive_form.folder.id_for_label }}" class="form-label fw-medium">{{ archive_form.folder.label }}</label>
+      {{ archive_form.folder }}
+      <datalist id="archive-folders">{% for f in archive_folders %}<option value="{{ f }}">{% endfor %}</datalist>
+    </div>
+    <div class="mb-2">
+      <label for="{{ archive_form.retention_years.id_for_label }}" class="form-label fw-medium">{{ archive_form.retention_years.label }}</label>
+      {{ archive_form.retention_years }}
+    </div>
+    <div class="mb-2">
+      <label for="{{ archive_form.note.id_for_label }}" class="form-label fw-medium">{{ archive_form.note.label }}</label>
+      {{ archive_form.note }}
+    </div>
+    <button type="submit" class="btn btn-navy w-100">จัดเก็บ</button>
+    <p class="small text-secondary mt-2 mb-0">หลังจัดเก็บ เอกสารอ่านได้อย่างเดียว นำออกได้เมื่อต้องดำเนินการต่อ (ต้องระบุเหตุผล)</p>
+  </form>
+</section>
+{% endif %}

@@ -1,0 +1,10 @@
+{% if wf_steps %}
+<ol class="wf-stepper" aria-label="ขั้นตอนการเสนอ">
+  {% for s in wf_steps %}
+  <li class="wf-step {{ s.state }}"{% if s.state == "current" %} aria-current="step"{% endif %}>
+    <span class="wf-dot" aria-hidden="true">{% if s.state == "done" %}{% include "partials/icon.html" with name="check" %}{% else %}{{ s.n }}{% endif %}</span>
+    <span class="wf-label">{{ s.label }}<span class="visually-hidden"> ({% if s.state == "done" %}เสร็จแล้ว{% elif s.state == "current" %}กำลังดำเนินการ{% else %}ยังไม่ถึง{% endif %})</span></span>
+  </li>
+  {% endfor %}
+</ol>
+{% endif %}

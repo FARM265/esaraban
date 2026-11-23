@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% load thai_date %}
+{% block title %}หัวหนังสือ{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">หัวหนังสือ</h1>
+    <p class="page-sub">ใช้กับหนังสือที่สร้างจากแม่แบบทุกประเภท หนังสือที่สร้างไปแล้วไม่เปลี่ยนตาม จนกว่าจะแก้ไขร่าง</p>
+  </div>
+</div>
+<form method="post" enctype="multipart/form-data" novalidate>
+  {% csrf_token %}
+  <div class="row g-3">
+    <div class="col-12 col-xl-8">
+      <section class="card-panel">
+        {% include "partials/form_errors.html" %}
+        {% include "partials/field.html" with field=form.org_name %}
+        {% include "partials/field.html" with field=form.address %}
+        {% include "partials/field.html" with field=form.default_contact %}
+        {% include "partials/field.html" with field=form.emblem %}
+        <div class="d-flex justify-content-end border-top pt-3">
+          <button type="submit" class="btn btn-navy px-4">บันทึกหัวหนังสือ</button>
+        </div>
+      </section>
+    </div>
+    <aside class="col-12 col-xl-4 d-flex flex-column gap-3">
+      <section class="card-panel">
+        <h2 class="panel-title">ตราครุฑปัจจุบัน</h2>
+        {% if head.emblem_key %}
+          <div class="signature-preview"><img src="{% url 'letters:emblem' %}" alt="ภาพตราครุฑที่ใช้บนหัวหนังสือ" style="max-height:140px"></div>
+        {% else %}
+          <p class="small text-secondary mb-0">ยังไม่มีภาพ หนังสือจะเว้นที่ว่างไว้ตรงตำแหน่งตราครุฑ</p>
+        {% endif %}
+        {% if head.updated_by %}<p class="small text-secondary mt-2 mb-0">แก้ไขล่าสุด {{ head.updated_at|thai_datetime }} โดย {{ head.updated_by.display_name_th }}</p>{% endif %}
+      </section>
+      <section class="card-panel" style="background:#FFF8EB;border-color:#F5D08A">
+        <p class="small mb-0" style="color:#5C3A00">ระบบทดลอง: ตรวจสอบข้อกำหนดการใช้ตราครุฑและรูปแบบหนังสือกับผู้รับผิดชอบก่อนใช้งานจริง</p>
+      </section>
+    </aside>
+  </div>
+</form>
+{% endblock %}

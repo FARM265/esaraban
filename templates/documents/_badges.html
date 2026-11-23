@@ -1,0 +1,3 @@
+{% if doc.urgency == 3 %}<span class="es-badge bad">{{ doc.get_urgency_display }}</span>{% elif doc.urgency %}<span class="es-badge warn">{{ doc.get_urgency_display }}</span>{% endif %}
+{% if doc.secrecy %}<span class="es-badge secret">{{ doc.get_secrecy_display }}</span>{% endif %}
+{% if doc.status == "CANCELLED" %}<span class="es-badge bad">{{ doc.get_status_display }}</span>{% elif doc.status == "DONE" or doc.status == "ARCHIVED" %}<span class="es-badge ok">{{ doc.get_status_display }}</span>{% else %}<span class="es-badge info">{{ doc.get_status_display }}</span>{% endif %}

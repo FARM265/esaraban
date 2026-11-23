@@ -1,0 +1,35 @@
+{% load thai_date %}
+{% if can_sign %}
+<section class="card-panel">
+  <h2 class="panel-title">ลงนาม</h2>
+  <p class="small mb-2">เลือกได้ว่าจะลงนามแบบ <span class="es-badge ok">ลายมือชื่อดิจิทัล</span> (ใบรับรองทดสอบ ตรวจสอบได้ ไม่มีผลทางกฎหมาย)
+    หรือ <span class="es-badge warn">ภาพลายมือชื่อ</span> (ไม่ใช่ Digital Signature)</p>
+  {% if not sign_has_image %}
+    <p class="mb-2">ท่านยังไม่มีภาพลายมือชื่อในระบบ</p>
+    <a class="btn btn-navy w-100" href="{% url 'signatures:my_signature' %}">อัปโหลดภาพลายมือชื่อ</a>
+  {% elif sign_target %}
+    <a class="btn btn-navy w-100" href="{% url 'documents:viewer' sign_target.pk %}?sign=1">เลือกตำแหน่งบนเอกสารและลงนาม</a>
+    <p class="small text-secondary mt-2 mb-0">จะเปิด {{ sign_target.original_name }} ให้คลิกวางลายเซ็นตรงจุดที่ต้องการ ลากย้ายและปรับขนาดได้ก่อนยืนยัน
+      ถ้าต้องการลงนามไฟล์อื่น ให้กด "แสดง" ที่ไฟล์นั้น แล้วกด "เปิดเต็มจอ" และ "วางลายเซ็น"</p>
+  {% endif %}
+</section>
+{% endif %}
+
+{% if sign_records %}
+<section class="card-panel">
+  <h2 class="panel-title">การลงนาม</h2>
+  <ul class="list-unstyled mb-0">
+    {% for r in sign_records %}
+    <li class="mb-3">
+      <div class="fw-semibold">{{ r.signer.display_name_th }}</div>
+      <div class="small">
+        {% if r.sig_type == "IMAGE" %}<span class="es-badge warn">ภาพลายมือชื่อ</span>{% else %}<span class="es-badge ok">ลายมือชื่อดิจิทัล (ใบรับรองทดสอบ)</span>{% endif %}
+        {% if r.mfa_verified %}<span class="es-badge info">ยืนยันตัวตนด้วย MFA</span>{% endif %}
+      </div>
+      <div class="small text-secondary">{{ r.signed_at|thai_datetime }} · หน้า {{ r.page }} · <a href="{% url 'documents:viewer' r.signed_attachment.pk %}">{{ r.signed_attachment.original_name }}</a></div>
+      <div class="small text-secondary">SHA-256 <code>{{ r.signed_sha256|slice:":16" }}…</code></div>
+    </li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}

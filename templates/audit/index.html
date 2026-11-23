@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% load thai_date %}
+{% block title %}Audit Log{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Audit Log</h1>
+    <p class="page-sub">บันทึกการใช้งานทั้งหมด {{ total|floatformat:"0g" }} รายการ เพิ่มได้อย่างเดียว แก้ไขหรือลบไม่ได้ และต่อกันด้วย hash chain</p>
+  </div>
+  <div class="d-flex gap-2">
+    <a class="btn btn-outline-secondary" href="{% url 'audit:export' %}{% if querystring %}?{{ querystring }}{% endif %}">ดาวน์โหลด Excel</a>
+    <form method="post" action="{% url 'audit:verify' %}">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-navy">ตรวจความครบถ้วน</button>
+    </form>
+  </div>
+</div>
+
+<form method="get" class="card-panel mb-3" role="search">
+  <div class="row g-2 align-items-end">
+    <div class="col-12 col-md-4">
+      <label for="q" class="form-label small fw-medium">ค้นหา</label>
+      <input id="q" name="q" value="{{ q }}" class="form-control" placeholder="ชื่อผู้ใช้ เรื่อง เลขหนังสือ IP">
+    </div>
+    <div class="col-6 col-md-2">
+      <label for="category" class="form-label small fw-medium">หมวด</label>
+      <select id="category" name="category" class="form-select">
+        <option value="">ทั้งหมด</option>
+        {% for value, label in categories %}<option value="{{ value }}"{% if value == category %} selected{% endif %}>{{ label }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="col-6 col-md-2">
+      <label for="from" class="form-label small fw-medium">ตั้งแต่วันที่</label>
+      <input id="from" name="from" type="date" value="{{ date_from }}" class="form-control">
+    </div>
+    <div class="col-6 col-md-2">
+      <label for="to" class="form-label small fw-medium">ถึงวันที่</label>
+      <input id="to" name="to" type="date" value="{{ date_to }}" class="form-control">
+    </div>
+    <div class="col-6 col-md-2 d-flex gap-2">
+      <button type="submit" class="btn btn-navy flex-grow-1">ค้นหา</button>
+      <a href="{% url 'audit:index' %}" class="btn btn-outline-secondary">ล้าง</a>
+    </div>
+  </div>
+</form>
+
+<div class="table-panel">
+  <div class="table-responsive">
+    <table class="table align-middle">
+      <thead><tr><th class="ps-3">ลำดับ</th><th>เวลา</th><th>ผู้ใช้</th><th>หมวด</th><th>รายการ</th><th>IP</th></tr></thead>
+      <tbody>
+        {% for e in page %}
+        <tr>
+          <td class="ps-3 text-secondary">{{ e.seq }}</td>
+          <td class="text-nowrap">{{ e.at|thai_datetime }}</td>
+          <td>{{ e.actor_label|default:"-" }}</td>
+          <td><span class="es-badge">{{ e.get_category_display }}</span></td>
+          <td>
+            <div>{{ e.summary }}</div>
+            {% if e.detail %}
+            <details class="small text-secondary"><summary>รายละเอียด <code>{{ e.action }}</code></summary>
+              <dl class="audit-detail mb-0">{% for k, v in e.detail.items %}<dt>{{ k }}</dt><dd>{{ v|default:"-" }}</dd>{% endfor %}</dl>
+              <div>hash <code>{{ e.hash|slice:":16" }}…</code></div>
+            </details>
+            {% else %}<div class="small text-secondary"><code>{{ e.action }}</code></div>{% endif %}
+          </td>
+          <td class="text-nowrap small">{{ e.ip_address|default:"-" }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" class="text-center text-secondary py-4">ไม่พบรายการ</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% if page.paginator.num_pages > 1 %}
+<nav class="d-flex justify-content-between align-items-center mt-3" aria-label="หน้า">
+  <span class="small text-secondary">หน้า {{ page.number }} จาก {{ page.paginator.num_pages }}</span>
+  <div class="d-flex gap-2">
+    {% if page.has_previous %}<a class="btn btn-sm btn-outline-secondary" href="?{{ querystring }}&page={{ page.previous_page_number }}">ใหม่กว่า</a>{% endif %}
+    {% if page.has_next %}<a class="btn btn-sm btn-outline-secondary" href="?{{ querystring }}&page={{ page.next_page_number }}">เก่ากว่า</a>{% endif %}
+  </div>
+</nav>
+{% endif %}
+{% endblock %}

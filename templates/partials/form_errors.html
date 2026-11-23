@@ -1,0 +1,9 @@
+{% if form.errors %}
+<div class="alert alert-danger" role="alert">
+  <strong>ยังไม่ได้บันทึก</strong> กรุณาแก้ไขข้อมูลต่อไปนี้:
+  <ul class="mb-0 mt-1">
+    {% for field in form %}{% for err in field.errors %}<li>{{ field.label }}: {{ err }}</li>{% endfor %}{% endfor %}
+    {% for err in form.non_field_errors %}<li>{{ err }}</li>{% endfor %}
+  </ul>
+</div>
+{% endif %}

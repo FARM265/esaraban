@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% load thai_date %}
+{% block title %}คลังเอกสาร{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">คลังเอกสาร</h1>
+    <p class="page-sub">เรื่องที่จัดเก็บแล้ว (เฉพาะที่ท่านมีสิทธิ์) · {{ page.paginator.count }} รายการ
+      {% if due_count %}· <a href="?due=1">ครบอายุการเก็บ {{ due_count }} รายการ</a>{% endif %}</p>
+  </div>
+</div>
+
+<form method="get" class="card-panel mb-3" role="search">
+  <div class="row g-2 align-items-end">
+    <div class="col-12 col-md-4">
+      <label for="q" class="form-label small fw-medium">ค้นหา</label>
+      <input id="q" name="q" value="{{ q }}" class="form-control" placeholder="เลขทะเบียน เรื่อง หน่วยงาน หมายเหตุ">
+    </div>
+    <div class="col-6 col-md-3">
+      <label for="folder" class="form-label small fw-medium">หมวด/แฟ้ม</label>
+      <select id="folder" name="folder" class="form-select">
+        <option value="">ทั้งหมด</option>
+        {% for f in folders %}<option value="{{ f }}"{% if f == folder %} selected{% endif %}>{{ f }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="col-6 col-md-2">
+      <label for="year" class="form-label small fw-medium">ปีที่จัดเก็บ</label>
+      <select id="year" name="year" class="form-select">
+        <option value="">ทุกปี</option>
+        {% for y in years %}<option value="{{ y }}"{% if y|stringformat:"d" == year %} selected{% endif %}>{{ y }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="col-12 col-md-3 d-flex gap-2 align-items-center">
+      <div class="form-check mb-0"><input class="form-check-input" type="checkbox" id="due" name="due" value="1"{% if due %} checked{% endif %}>
+        <label class="form-check-label small" for="due">เฉพาะที่ครบอายุ</label></div>
+      <button type="submit" class="btn btn-navy ms-auto">ค้นหา</button>
+    </div>
+  </div>
+</form>
+
+<div class="table-panel">
+  <div class="table-responsive">
+    <table class="table align-middle">
+      <thead><tr><th class="ps-3">หมวด/แฟ้ม</th><th>เลขทะเบียน</th><th>เรื่อง</th><th>จัดเก็บเมื่อ</th><th>เก็บถึง</th></tr></thead>
+      <tbody>
+        {% for r in page %}
+        <tr>
+          <td class="ps-3 fw-medium">{{ r.folder }}</td>
+          <td class="text-nowrap"><a href="{% url 'documents:detail' r.document.pk %}">{{ r.document.registration.display_no|default:"-" }}</a></td>
+          <td>{{ r.document.subject }}<div class="small text-secondary">{{ r.document.get_kind_display }}{% if r.document.owner_department %} · {{ r.document.owner_department }}{% endif %}</div></td>
+          <td class="text-nowrap">{{ r.archived_at|thai_date }}<div class="small text-secondary">{{ r.archived_by.display_name_th }}</div></td>
+          <td class="text-nowrap">{% if r.keep_until %}{{ r.keep_until|thai_date }}{% if r.keep_until <= today %} <span class="es-badge warn">ครบอายุ</span>{% endif %}{% else %}ตลอดไป{% endif %}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" class="text-center text-secondary py-4">ไม่พบเรื่องในคลัง</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+<p class="small text-secondary mt-2">ระบบไม่ทำลายเอกสารเอง เรื่องที่ครบอายุการเก็บให้คณะกรรมการพิจารณาตามระเบียบงานสารบรรณ</p>
+{% if page.paginator.num_pages > 1 %}
+<nav class="d-flex justify-content-between align-items-center mt-3" aria-label="หน้า">
+  <span class="small text-secondary">หน้า {{ page.number }} จาก {{ page.paginator.num_pages }}</span>
+  <div class="d-flex gap-2">
+    {% if page.has_previous %}<a class="btn btn-sm btn-outline-secondary" href="?{{ querystring }}&page={{ page.previous_page_number }}">ก่อนหน้า</a>{% endif %}
+    {% if page.has_next %}<a class="btn btn-sm btn-outline-secondary" href="?{{ querystring }}&page={{ page.next_page_number }}">ถัดไป</a>{% endif %}
+  </div>
+</nav>
+{% endif %}
+{% endblock %}

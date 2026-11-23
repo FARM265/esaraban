@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% load thai_date %}
+{% block title %}การแจ้งเตือน{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">การแจ้งเตือน</h1>
+    <p class="page-sub">ยังไม่ได้อ่าน {{ UNREAD_NOTIFICATIONS }} รายการ</p>
+  </div>
+  <div class="d-flex gap-2">
+    {% if only_unread %}<a class="btn btn-outline-secondary" href="{% url 'notifications:index' %}">แสดงทั้งหมด</a>
+    {% else %}<a class="btn btn-outline-secondary" href="?unread=1">เฉพาะที่ยังไม่อ่าน</a>{% endif %}
+    {% if UNREAD_NOTIFICATIONS %}
+    <form method="post" action="{% url 'notifications:read_all' %}">
+      {% csrf_token %}<button type="submit" class="btn btn-navy">อ่านทั้งหมดแล้ว</button>
+    </form>
+    {% endif %}
+  </div>
+</div>
+<section class="card-panel p-0">
+  <ul class="notice-list">
+    {% for n in page %}
+    <li class="notice-item{% if not n.is_read %} unread{% endif %}">
+      <form method="post" action="{% url 'notifications:open' n.pk %}">
+        {% csrf_token %}
+        <button type="submit" class="notice-open">
+          <span class="notice-dot" aria-hidden="true"></span>
+          <span class="flex-grow-1 text-start">
+            <span class="d-block fw-semibold">{{ n.title }}{% if not n.is_read %}<span class="visually-hidden"> (ยังไม่อ่าน)</span>{% endif %}</span>
+            {% if n.body %}<span class="d-block small">{{ n.body }}</span>{% endif %}
+            <span class="d-block small text-secondary">{{ n.created_at|thai_datetime }}</span>
+          </span>
+        </button>
+      </form>
+    </li>
+    {% empty %}
+    <li class="p-4 text-center text-secondary">ไม่มีการแจ้งเตือน</li>
+    {% endfor %}
+  </ul>
+</section>
+{% if page.paginator.num_pages > 1 %}
+<nav class="d-flex justify-content-between align-items-center mt-3" aria-label="หน้า">
+  <span class="small text-secondary">หน้า {{ page.number }} จาก {{ page.paginator.num_pages }}</span>
+  <div class="d-flex gap-2">
+    {% if page.has_previous %}<a class="btn btn-sm btn-outline-secondary" href="?{% if only_unread %}unread=1&{% endif %}page={{ page.previous_page_number }}">ใหม่กว่า</a>{% endif %}
+    {% if page.has_next %}<a class="btn btn-sm btn-outline-secondary" href="?{% if only_unread %}unread=1&{% endif %}page={{ page.next_page_number }}">เก่ากว่า</a>{% endif %}
+  </div>
+</nav>
+{% endif %}
+{% endblock %}

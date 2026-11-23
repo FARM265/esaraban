@@ -1,0 +1,59 @@
+# ติดตั้งระบบ E-Saraban ด้วย Docker
+#   docker compose --env-file .env.docker up -d --build
+# รายละเอียดดู README หัวข้อ "ติดตั้งด้วย Docker"
+
+name: esaraban
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:?ต้องตั้งค่าใน .env.docker}
+      POSTGRES_USER: ${POSTGRES_USER:?ต้องตั้งค่าใน .env.docker}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?ต้องตั้งค่าใน .env.docker}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=C"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    # ไม่เปิดพอร์ตฐานข้อมูลออกนอกเครื่อง เข้าได้เฉพาะจาก container web
+
+  web:
+    build: .
+    restart: unless-stopped
+    env_file: .env.docker
+    environment:
+      POSTGRES_HOST: db
+      DJANGO_SETTINGS_MODULE: config.settings.prod
+      # web ไม่เปิดพอร์ตออกนอกเครื่อง ทุกคำขอผ่าน nginx จึงเชื่อ X-Real-IP ที่ nginx ตั้งได้
+      TRUST_PROXY_IP_HEADER: "True"
+    volumes:
+      - private_storage:/app/private_storage
+      - staticfiles:/app/staticfiles
+    depends_on:
+      db:
+        condition: service_healthy
+
+  nginx:
+    build: docker/nginx
+    restart: unless-stopped
+    environment:
+      SERVER_NAME: ${SERVER_NAME:-localhost}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - staticfiles:/srv/staticfiles:ro
+      - ./docker/certs:/etc/nginx/certs
+    depends_on:
+      web:
+        condition: service_healthy
+
+volumes:
+  pgdata:
+  private_storage:
+  staticfiles:

@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% load thai_date %}
+{% block title %}ลายมือชื่อของฉัน{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">ลายมือชื่อของฉัน</h1>
+    <p class="page-sub">ภาพนี้ใช้วางบนเอกสารเมื่อท่านลงนาม{% if sign_require_otp %} ทุกครั้งที่ลงนามต้องยืนยันด้วยรหัส 6 หลักจากแอปก่อน{% else %} ก่อนสร้างไฟล์ระบบจะให้กดยืนยันอีกครั้ง{% endif %}</p>
+  </div>
+</div>
+<div class="row g-3">
+  <div class="col-12 col-xl-6">
+    <section class="card-panel h-100">
+      <h2 class="panel-title">ภาพปัจจุบัน</h2>
+      {% if current %}
+        <div class="signature-preview"><img src="{% url 'signatures:my_signature_image' %}" alt="ภาพลายมือชื่อปัจจุบันของท่าน"></div>
+        <p class="small text-secondary mt-2 mb-0">อัปโหลดเมื่อ {{ current.uploaded_at|thai_datetime }} · การลงนามที่ทำไปแล้วไม่เปลี่ยนตามภาพใหม่</p>
+      {% else %}
+        <p class="text-secondary mb-0">ยังไม่มีภาพลายมือชื่อ</p>
+      {% endif %}
+    </section>
+  </div>
+  <div class="col-12 col-xl-6">
+    <form method="post" enctype="multipart/form-data" class="card-panel h-100" novalidate>
+      {% csrf_token %}
+      <h2 class="panel-title">{% if current %}เปลี่ยนภาพ{% else %}อัปโหลดภาพ{% endif %}</h2>
+      {% include "partials/form_errors.html" %}
+      {% include "partials/field.html" with field=form.image %}
+      <button type="submit" class="btn btn-navy">บันทึกภาพลายมือชื่อ</button>
+    </form>
+  </div>
+</div>
+{% if digital_enabled %}
+<section class="card-panel mt-3">
+  <h2 class="panel-title">ใบรับรองสำหรับลายมือชื่อดิจิทัล <span class="es-badge warn">ทดสอบ ไม่มีผลทางกฎหมาย</span></h2>
+  {% if credential %}
+    <dl class="env-list mb-2">
+      <dt>ชื่อในใบรับรอง</dt><dd>{{ credential.common_name }}</dd>
+      <dt>ใช้ได้ถึง</dt><dd>{{ credential.not_after|thai_datetime }} (ระบบต่ออายุให้อัตโนมัติ)</dd>
+      <dt>ลายนิ้วมือ SHA-256</dt><dd><code>{{ credential.fingerprint|slice:":32" }}…</code></dd>
+    </dl>
+  {% else %}
+    <p class="mb-2">ยังไม่มี ระบบออกใบรับรองทดสอบให้อัตโนมัติเมื่อท่านลงนามแบบ "ลายมือชื่อดิจิทัล" ครั้งแรก</p>
+  {% endif %}
+  <p class="small text-secondary mb-0">กุญแจลับเข้ารหัสเก็บไว้ในเซิร์ฟเวอร์ ไม่ส่งออกไปที่เครื่องของท่าน
+    {% if has_ca %}· <a href="{% url 'signatures:test_ca' %}">ดาวน์โหลดใบรับรอง CA ทดสอบ</a> เพื่อตั้งให้โปรแกรมอ่าน PDF บนเครื่องทดสอบเชื่อถือ{% endif %}</p>
+</section>
+{% endif %}
+<div class="alert alert-warning mt-3 small mb-0">
+  <strong>ภาพลายมือชื่อไม่ใช่ Digital Signature</strong> ถ้าลงนามแบบ "ภาพลายมือชื่อ" ระบบบันทึกผู้ลงนาม เวลา การยืนยันตัวตน และ hash ของไฟล์ไว้เป็นหลักฐาน
+  แต่ตรวจสอบด้วยใบรับรองใน PDF Reader ไม่ได้ ส่วน "ลายมือชื่อดิจิทัล" ในระบบนี้ใช้ใบรับรองทดสอบที่ระบบสร้างเอง ตรวจได้ว่าไฟล์ถูกแก้ไขหรือไม่ แต่ไม่มีผลทางกฎหมาย
+  การใช้งานจริงต้องใช้ใบรับรองจากผู้ให้บริการออกใบรับรองที่ได้รับอนุญาต และตรวจสอบข้อกำหนดกับผู้รับผิดชอบก่อน
+</div>
+{% endblock %}

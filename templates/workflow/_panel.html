@@ -1,0 +1,110 @@
+{% load thai_date %}
+{# งานของผู้ใช้ในเอกสารนี้ #}
+{% for item in wf_my_tasks %}
+{% with t=item.task %}
+<section class="card-panel wf-action">
+  <h2 class="panel-title">{{ t.get_kind_display }}</h2>
+  {% if item.on_behalf_of %}
+    <div class="alert alert-info small py-2">ท่านดำเนินการแทน <strong>{{ item.on_behalf_of.display_name_th }}</strong> ตามการมอบหมาย ระบบจะบันทึกชื่อทั้งสองคน</div>
+  {% endif %}
+  {% if t.due_at %}<p class="small {% if t.is_overdue %}text-danger fw-semibold{% else %}text-secondary{% endif %}">กำหนด {{ t.due_at|thai_datetime }}{% if t.is_overdue %} (เกินกำหนด){% endif %}</p>{% endif %}
+  {% if t.kind == "ACT" and t.command_text %}
+    <div class="wf-command"><div class="small text-secondary">ข้อสั่งการ</div><div style="white-space:pre-line">{{ t.command_text }}</div></div>
+  {% endif %}
+
+  <form method="post" action="{% url 'workflow:act' t.pk %}" novalidate>
+    {% csrf_token %}
+    {% if t.kind == "COMMAND" %}
+      <div class="mb-3">
+        <label for="cmd-{{ t.pk }}" class="form-label fw-medium">ข้อสั่งการ <span class="text-danger" aria-hidden="true">*</span></label>
+        <textarea id="cmd-{{ t.pk }}" name="command_text" class="form-control" rows="3" placeholder="เช่น มอบกลุ่มงาน ก ดำเนินการและรายงานผล"></textarea>
+      </div>
+      <div class="mb-3">
+        <label for="asg-{{ t.pk }}" class="form-label fw-medium">ผู้รับผิดชอบ</label>
+        <select id="asg-{{ t.pk }}" name="assignees" class="form-select" multiple size="6">
+          {% for u in wf_action_form.fields.assignees.queryset %}<option value="{{ u.pk }}">{{ u.display_name_th }}{% if u.department %} · {{ u.department.name_th }}{% endif %}</option>{% endfor %}
+        </select>
+        <div class="form-text">กด Ctrl ค้างไว้เพื่อเลือกหลายคน ถ้าไม่เลือก ถือว่าเรื่องจบที่การสั่งการ (เช่น ทราบ / เก็บเข้าแฟ้ม) แสดงเฉพาะผู้มีสิทธิ์ชั้นความลับเพียงพอ</div>
+      </div>
+      <div class="mb-3">
+        <label for="due-{{ t.pk }}" class="form-label fw-medium">กำหนดเสร็จ</label>
+        <input id="due-{{ t.pk }}" type="date" name="due_date" class="form-control" style="max-width:220px">
+      </div>
+    {% endif %}
+    <div class="mb-3">
+      <label for="cmt-{{ t.pk }}" class="form-label fw-medium">{% if t.kind == "ACT" %}รายงานผลการดำเนินการ{% else %}ความเห็น{% endif %}</label>
+      <textarea id="cmt-{{ t.pk }}" name="comment" class="form-control" rows="3"></textarea>
+      {% if "RETURN" in t.allowed_decisions or "CANCEL" in t.allowed_decisions %}<div class="form-text">ถ้าส่งกลับแก้ไขหรือยกเลิก ต้องระบุเหตุผลในช่องนี้</div>{% endif %}
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+      {% if t.kind == "REVIEW" %}
+        <button type="submit" name="decision" value="FORWARD" class="btn btn-navy flex-fill">เสนอขั้นถัดไป</button>
+        <button type="submit" name="decision" value="RETURN" class="btn btn-outline-warning flex-fill wf-return">ส่งกลับแก้ไข</button>
+      {% elif t.kind == "COMMAND" %}
+        <button type="submit" name="decision" value="COMMAND" class="btn btn-navy flex-fill">สั่งการ</button>
+        <button type="submit" name="decision" value="RETURN" class="btn btn-outline-warning flex-fill wf-return">ส่งกลับแก้ไข</button>
+      {% elif t.kind == "REVISE" %}
+        {% if can_edit %}<a class="btn btn-outline-secondary flex-fill" href="{% url 'documents:edit' doc.pk %}">แก้ไขข้อมูลเอกสาร</a>{% endif %}
+        <button type="submit" name="decision" value="RESUBMIT" class="btn btn-navy flex-fill">เสนออีกครั้ง</button>
+        <button type="submit" name="decision" value="CANCEL" class="btn btn-outline-danger flex-fill">ยกเลิกการเสนอ</button>
+      {% elif t.kind == "ACT" %}
+        <button type="submit" name="decision" value="COMPLETE" class="btn btn-navy flex-fill">ดำเนินการเสร็จ</button>
+      {% endif %}
+    </div>
+  </form>
+</section>
+{% endwith %}
+{% endfor %}
+
+{# เริ่มเสนอ #}
+{% if wf_start_form %}
+<section class="card-panel">
+  <h2 class="panel-title">เสนอหนังสือ</h2>
+  <form method="post" action="{% url 'workflow:start' doc.pk %}" novalidate>
+    {% csrf_token %}
+    {% include "partials/field.html" with field=wf_start_form.template %}
+    {% include "partials/field.html" with field=wf_start_form.comment %}
+    <button type="submit" class="btn btn-navy w-100">เริ่มเสนอ</button>
+  </form>
+  {% if not wf_start_form.fields.template.queryset %}<p class="small text-danger mt-2 mb-0">ยังไม่มีเส้นทางการเสนอสำหรับเอกสารประเภทนี้ ติดต่อผู้ดูแลระบบ</p>{% endif %}
+</section>
+{% endif %}
+
+{# ใครถืองานอยู่ตอนนี้ #}
+{% if wf_running and wf_open_tasks %}
+<section class="card-panel">
+  <h2 class="panel-title">ขณะนี้อยู่ที่</h2>
+  <ul class="list-unstyled mb-0">
+    {% for t in wf_open_tasks %}
+    <li class="mb-2">
+      <div class="fw-semibold">{{ t.holder_label }}</div>
+      <div class="small text-secondary">{{ t.get_kind_display }}{% if t.due_at %} · กำหนด {{ t.due_at|thai_datetime }}{% endif %}{% if t.is_overdue %} <span class="es-badge bad">เกินกำหนด</span>{% endif %}</div>
+    </li>
+    {% endfor %}
+  </ul>
+  {% if not wf_my_tasks %}<p class="small mt-2 mb-1 wf-not-mine">ท่านไม่ใช่ผู้รับงานขั้นนี้ จึงดูได้อย่างเดียว ถ้าคิดว่าควรเป็นผู้รับงาน ให้ตรวจบทบาทของท่านที่เมนู "ข้อมูลและความปลอดภัย"</p>{% endif %}
+  <p class="small text-secondary mt-2 mb-0">เส้นทาง: {{ wf_running.template_name }}</p>
+</section>
+{% endif %}
+
+{# ประวัติการเสนอ #}
+{% if wf_history %}
+<section class="card-panel">
+  <h2 class="panel-title">ประวัติการเสนอและสั่งการ</h2>
+  <ul class="timeline">
+    {% for t in wf_history %}
+    <li>
+      <span class="dot" aria-hidden="true"></span>
+      <div>
+        <div class="fw-semibold">{{ t.get_decision_display }}{% if t.kind == "ACT" %} (ผู้รับผิดชอบ){% endif %}</div>
+        {% if t.command_text and t.kind == "COMMAND" %}<div class="small" style="white-space:pre-line">ข้อสั่งการ: {{ t.command_text }}</div>{% endif %}
+        {% if t.comment %}<div class="small" style="white-space:pre-line">{{ t.comment }}</div>{% endif %}
+        <div class="small text-secondary">
+          {{ t.acted_by.display_name_th }}{% if t.on_behalf_of %} (แทน {{ t.on_behalf_of.display_name_th }}){% endif %} · {{ t.acted_at|thai_datetime }}
+        </div>
+      </div>
+    </li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}

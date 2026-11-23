@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+{% load thai_date %}
+{% block title %}ทะเบียนเลขหนังสือ{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">ทะเบียนเลขหนังสือ</h1>
+    <p class="page-sub">เลขนับใหม่ทุกปี พ.ศ. แยกตามชุดทะเบียน เลขที่ออกแล้วลบไม่ได้ ยกเลิกได้โดยระบุเหตุผล</p>
+  </div>
+  {% if can_manage %}<a class="btn btn-outline-secondary" href="{% url 'registry:book_create' %}">+ เพิ่มชุดทะเบียน</a>{% endif %}
+</div>
+
+{% if not books %}
+  <section class="card-panel"><p class="mb-0">ยังไม่มีชุดทะเบียน</p></section>
+{% else %}
+<nav aria-label="ชุดทะเบียน" class="row g-2 mb-3">
+  {% for b in books %}
+  <div class="col-6 col-md-4 col-xl">
+    <a href="?book={{ b.pk }}" class="card-panel d-block text-decoration-none h-100{% if b.pk == book.pk %} border-2{% endif %}" style="{% if b.pk == book.pk %}border-color:var(--es-primary);background:#F9F5FA{% endif %}"{% if b.pk == book.pk %} aria-current="true"{% endif %}>
+      <div class="fw-bold" style="color:var(--es-ink)">{{ b.name_th }}</div>
+      <div class="small text-secondary">{{ b.get_register_type_display }}{% if not b.is_active %} · ปิดใช้งาน{% endif %}</div>
+      <div class="small text-secondary">รูปแบบ <code>{{ b.number_format }}</code></div>
+    </a>
+  </div>
+  {% endfor %}
+</nav>
+
+<div class="row g-3">
+  <div class="col-12 col-xl-8">
+    <section class="table-panel">
+      <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 p-3 border-bottom">
+        <h2 class="panel-title mb-0">{{ book.name_th }}</h2>
+        <form method="get" class="d-flex align-items-center gap-2">
+          <input type="hidden" name="book" value="{{ book.pk }}">
+          <label for="year" class="small">ปี พ.ศ.</label>
+          <select id="year" name="year" class="form-select form-select-sm" onchange="this.form.submit()">
+            {% for y in years %}<option value="{{ y }}"{% if y == year_be %} selected{% endif %}>{{ y }}</option>{% endfor %}
+          </select>
+          <noscript><button type="submit" class="btn btn-sm btn-navy">ดู</button></noscript>
+        </form>
+      </div>
+      <div class="table-responsive">
+        <table class="table align-middle">
+          <thead><tr><th class="ps-3">เลขที่</th><th>เรื่อง</th><th>ออกโดย</th><th>สถานะ</th>{% if can_register %}<th><span class="visually-hidden">การทำงาน</span></th>{% endif %}</tr></thead>
+          <tbody>
+            {% for n in page %}
+            <tr>
+              <td class="ps-3 fw-semibold text-nowrap">{% if n.is_voided %}<s>{{ n.display_no }}</s>{% else %}{{ n.display_no }}{% endif %}</td>
+              <td>
+                {% if n.document %}<a href="{% url 'documents:detail' n.document.pk %}">{{ n.document.subject }}</a>{% else %}{{ n.subject|default:"-" }}{% endif %}
+                {% if n.recipient %}<div class="small text-secondary">ถึง {{ n.recipient }}</div>{% endif %}
+              </td>
+              <td class="small text-nowrap">{{ n.issued_by.display_name_th }}<div class="text-secondary">{{ n.issued_at|thai_datetime }}</div></td>
+              <td>
+                {% if n.is_voided %}
+                  <span class="es-badge">ยกเลิกแล้ว</span>
+                  <div class="small text-secondary">{{ n.void_reason }} · {{ n.voided_by.display_name_th }}</div>
+                {% else %}<span class="es-badge ok">ใช้งาน</span>{% endif %}
+              </td>
+              {% if can_register %}
+              <td class="text-end">
+                {% if not n.is_voided %}
+                <details>
+                  <summary class="btn btn-sm btn-outline-danger">ยกเลิกเลข</summary>
+                  <form method="post" action="{% url 'registry:void' n.pk %}" class="mt-2 text-start" style="min-width:240px">
+                    {% csrf_token %}
+                    <label for="reason-{{ n.pk }}" class="form-label small fw-medium">เหตุผล (บังคับ)</label>
+                    <textarea id="reason-{{ n.pk }}" name="reason" class="form-control form-control-sm" rows="2" required></textarea>
+                    {% if n.document %}<div class="small text-danger mt-1">เอกสารที่ใช้เลขนี้จะถูกยกเลิกด้วย</div>{% endif %}
+                    <button type="submit" class="btn btn-sm btn-danger mt-2">ยืนยันยกเลิก</button>
+                  </form>
+                </details>
+                {% endif %}
+              </td>
+              {% endif %}
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" class="text-center text-secondary py-4">ยังไม่มีเลขในปี {{ year_be }}</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+    {% if page.has_other_pages %}
+    <nav class="mt-3" aria-label="เปลี่ยนหน้า">
+      <ul class="pagination">
+        {% if page.has_previous %}<li class="page-item"><a class="page-link" href="?book={{ book.pk }}&year={{ year_be }}&page={{ page.previous_page_number }}">ก่อนหน้า</a></li>{% endif %}
+        <li class="page-item disabled"><span class="page-link">หน้า {{ page.number }} / {{ page.paginator.num_pages }}</span></li>
+        {% if page.has_next %}<li class="page-item"><a class="page-link" href="?book={{ book.pk }}&year={{ year_be }}&page={{ page.next_page_number }}">ถัดไป</a></li>{% endif %}
+      </ul>
+    </nav>
+    {% endif %}
+  </div>
+
+  <aside class="col-12 col-xl-4 d-flex flex-column gap-3">
+    <section class="next-number">
+      <div class="small" style="color:#B9C7DD">เลขถัดไปของ{{ book.name_th }} (ประมาณการ)</div>
+      <div class="num">{{ next_number }}</div>
+      <p>เลขจริงจะออกเมื่อกดออกเลขหรือลงทะเบียนเท่านั้น</p>
+    </section>
+    {% if can_issue %}
+    <form method="post" action="{% url 'registry:issue' book.pk %}" class="card-panel" novalidate>
+      {% csrf_token %}
+      <h2 class="panel-title">ขอเลข{{ book.get_register_type_display }}</h2>
+      {% include "partials/field.html" with field=issue_form.subject %}
+      {% include "partials/field.html" with field=issue_form.recipient %}
+      <button type="submit" class="btn btn-navy w-100">ออกเลข</button>
+      <p class="small text-secondary mt-2 mb-0">ใช้เมื่อต้องการเลขก่อนจัดทำเอกสาร ขั้นตอนที่ 7 จะออกเลขอัตโนมัติเมื่อสร้างหนังสือในระบบ</p>
+    </form>
+    {% elif book.register_type == "RECEIVE" and can_register %}
+    <section class="card-panel">
+      <p class="mb-2">เลขรับออกอัตโนมัติเมื่อลงทะเบียนรับหนังสือ</p>
+      <a class="btn btn-navy w-100" href="{% url 'documents:receive' %}">ไปหน้าลงทะเบียนรับ</a>
+    </section>
+    {% endif %}
+    {% if can_manage %}
+    <a class="btn btn-outline-secondary" href="{% url 'registry:book_edit' book.pk %}">ตั้งค่าชุดทะเบียนนี้</a>
+    {% endif %}
+  </aside>
+</div>
+{% endif %}
+{% endblock %}

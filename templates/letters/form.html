@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}{% if editing %}แก้ไขร่างหนังสือ{% else %}สร้างหนังสือ{% endif %}{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <span class="small text-secondary"><a href="{% url 'documents:list' %}">เอกสาร</a> / {% if editing %}<a href="{% url 'documents:detail' editing.pk %}">{{ editing.subject|truncatechars:40 }}</a> / แก้ไขร่าง{% else %}สร้างหนังสือ{% endif %}</span>
+    <h1 class="page-title">{% if editing %}แก้ไขร่าง{{ editing.get_kind_display }}{% else %}สร้างหนังสือจากแม่แบบ{% endif %}</h1>
+    <p class="page-sub">ระบบจัดรูปแบบตามระเบียบงานสารบรรณให้ เลขที่และวันที่จะประทับเมื่อเจ้าหน้าที่สารบรรณออกเลข</p>
+  </div>
+</div>
+
+<form method="post" novalidate data-role="letter-form">
+  {% csrf_token %}
+  <div class="row g-3">
+    <div class="col-12 col-xl-8">
+      <section class="card-panel">
+        {% include "partials/form_errors.html" %}
+        <fieldset class="mb-3">
+          <legend class="form-label fw-medium fs-6">{{ form.kind.label }}</legend>
+          <div class="kind-cards">
+            {% for radio in form.kind %}
+              <label class="kind-card" for="{{ radio.id_for_label }}">{{ radio.tag }} <span>{{ radio.choice_label }}</span></label>
+            {% endfor %}
+          </div>
+          {% if editing %}<div class="form-text">เปลี่ยนแม่แบบหลังสร้างแล้วไม่ได้ ถ้าต้องการแม่แบบอื่นให้สร้างหนังสือใหม่</div>{% endif %}
+        </fieldset>
+
+        {% include "partials/field.html" with field=form.subject %}
+        <div data-kinds="OUTGOING INTERNAL">{% include "partials/field.html" with field=form.recipient %}</div>
+        <div data-kinds="INTERNAL">{% include "partials/field.html" with field=form.department_line %}</div>
+        <div class="row" data-kinds="OUTGOING">
+          <div class="col-12 col-md-6">{% include "partials/field.html" with field=form.reference %}</div>
+          <div class="col-12 col-md-6">{% include "partials/field.html" with field=form.enclosures %}</div>
+        </div>
+        {% include "partials/field.html" with field=form.body %}
+        <div data-kinds="OUTGOING">{% include "partials/field.html" with field=form.closing %}</div>
+        <div class="row">
+          <div class="col-12 col-md-6">{% include "partials/field.html" with field=form.signer_name %}</div>
+          <div class="col-12 col-md-6">{% include "partials/field.html" with field=form.signer_position %}</div>
+        </div>
+        <div data-kinds="OUTGOING">{% include "partials/field.html" with field=form.contact %}</div>
+
+        <h2 class="panel-title mt-4">การจัดเก็บ</h2>
+        {% include "partials/field.html" with field=form.owner_department %}
+        <div class="row">
+          <fieldset class="col-12 col-md-6 mb-3">
+            <legend class="form-label fw-medium fs-6">{{ form.urgency.label }}</legend>
+            <div class="choice-row">{{ form.urgency }}</div>
+            {% for err in form.urgency.errors %}<div class="text-danger small">{{ err }}</div>{% endfor %}
+            <div class="form-text">ถ้าไม่ใช่ "ปกติ" ระบบพิมพ์คำว่าด่วนสีแดงที่มุมบนซ้าย</div>
+          </fieldset>
+          <fieldset class="col-12 col-md-6 mb-3">
+            <legend class="form-label fw-medium fs-6">{{ form.secrecy.label }}</legend>
+            <div class="choice-row">{{ form.secrecy }}</div>
+            {% for err in form.secrecy.errors %}<div class="text-danger small">{{ err }}</div>{% endfor %}
+            <div class="form-text">ถ้าไม่ใช่ "ปกติ" ระบบพิมพ์ชั้นความลับสีแดงที่หัวและท้ายกระดาษทุกหน้า</div>
+          </fieldset>
+        </div>
+
+        <div class="d-flex flex-wrap gap-2 justify-content-end border-top pt-3">
+          <a class="btn btn-outline-secondary" href="{% if editing %}{% url 'documents:detail' editing.pk %}{% else %}{% url 'documents:list' %}{% endif %}">ยกเลิก</a>
+          <button type="submit" class="btn btn-navy px-4">{% if editing %}บันทึกและสร้างร่างฉบับใหม่{% else %}สร้างร่างหนังสือ{% endif %}</button>
+        </div>
+      </section>
+    </div>
+
+    <aside class="col-12 col-xl-4 d-flex flex-column gap-3">
+      <section class="card-panel">
+        <h2 class="panel-title">ขั้นตอน</h2>
+        <ol class="small mb-0 ps-3">
+          <li>กรอกข้อมูลแล้วกดสร้างร่าง ระบบสร้างไฟล์ PDF ตามแม่แบบ</li>
+          <li>เปิดดูร่าง แก้ไขได้จนกว่าจะออกเลข (แก้ทุกครั้งได้ร่างฉบับใหม่)</li>
+          <li>เสนอตามเส้นทางให้หัวหน้าและผู้บริหารพิจารณา สั่งการ/เกษียน และลงนาม</li>
+          <li>เจ้าหน้าที่สารบรรณกดออกเลข ระบบประทับเลขที่และวันที่ลงไฟล์ล่าสุด</li>
+        </ol>
+      </section>
+      <section class="card-panel" style="background:#FFF8EB;border-color:#F5D08A">
+        <p class="small mb-0" style="color:#5C3A00">ระบบทดลอง: ห้ามใช้ข้อมูลจริงหรือข้อมูลลับของสำนักงาน
+          ชื่อ ที่อยู่ และตราครุฑบนหัวหนังสือ ผู้ดูแลระบบตั้งค่าได้ที่เมนู "หัวหนังสือ"</p>
+      </section>
+    </aside>
+  </div>
+</form>
+{% endblock %}
+{% block extra_js %}
+<script src="{% static 'js/letter-form.js' %}?v={{ ASSET_VERSION }}" defer></script>
+{% endblock %}

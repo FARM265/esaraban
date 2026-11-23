@@ -1,0 +1,16 @@
+{% extends "accounts/auth_base.html" %}
+{% block title %}รหัสสำรอง{% endblock %}
+{% block content %}
+<h2 class="auth-title">รหัสสำรองของท่าน</h2>
+<div class="alert alert-warning" role="alert">
+  <strong>หน้านี้จะแสดงเพียงครั้งเดียว</strong> ให้พิมพ์หรือจดเก็บไว้ในที่ปลอดภัย
+  ใช้แทนรหัสจากมือถือได้เมื่อมือถือหายหรือเสีย แต่ละรหัสใช้ได้ครั้งเดียว
+</div>
+<ul class="backup-grid p-0 mb-4">
+  {% for code in codes %}<li>{{ code }}</li>{% endfor %}
+</ul>
+<div class="d-flex gap-2 no-print">
+  <button type="button" class="btn btn-outline-secondary flex-fill" onclick="window.print()">พิมพ์</button>
+  <a class="btn btn-navy flex-fill d-flex align-items-center justify-content-center" href="{% url 'core:home' %}">จดเก็บแล้ว ดำเนินการต่อ</a>
+</div>
+{% endblock %}

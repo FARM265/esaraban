@@ -1,0 +1,42 @@
+{% load static %}<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>{% block title %}เข้าสู่ระบบ{% endblock %} · E-Saraban</title>
+  <link rel="stylesheet" href="{% static 'vendor/bootstrap/bootstrap.min.css' %}?v={{ ASSET_VERSION }}">
+  <link rel="stylesheet" href="{% static 'css/fonts.css' %}?v={{ ASSET_VERSION }}">
+  <link rel="stylesheet" href="{% static 'css/esaraban.css' %}?v={{ ASSET_VERSION }}">
+  <link rel="icon" type="image/png" href="{% static 'img/favicon.png' %}?v={{ ASSET_VERSION }}">
+</head>
+<body>
+  {% if IS_TEST_SYSTEM %}
+  <div class="test-banner" role="note">ระบบทดลอง · ห้ามใช้ข้อมูลจริงหรือข้อมูลลับของสำนักงาน</div>
+  {% endif %}
+  <div class="auth-shell">
+    <section class="auth-brand" aria-label="ข้อมูลระบบ">
+      <img class="auth-emblem" src="{% static 'img/nacc-emblem-lg.png' %}?v={{ ASSET_VERSION }}" alt="ตราสำนักงาน ป.ป.ช." width="112" height="168">
+      <div class="auth-org">
+        <p class="org">{{ ORG_NAME }}</p>
+        {% if ORG_UNIT %}<p class="org-unit">{{ ORG_UNIT }}</p>{% endif %}
+        <h1>ระบบสารบรรณอิเล็กทรอนิกส์</h1>
+        <p>รับ ส่ง เสนอ ลงนาม และจัดเก็บหนังสือราชการในที่เดียว ทุกการเปิดอ่านและดาวน์โหลดถูกบันทึกเพื่อการตรวจสอบ</p>
+      </div>
+      <div class="fine">
+        <span>{% include "partials/icon.html" with name="lock" %} เชื่อมต่อผ่าน HTTPS และยืนยันตัวตน 2 ขั้น</span>
+        <span>{% include "partials/icon.html" with name="shield" %} สำหรับเจ้าหน้าที่ที่ได้รับอนุญาตเท่านั้น</span>
+      </div>
+    </section>
+    <main class="auth-main" id="main">
+      <div class="auth-card">
+        {% for message in messages %}
+          <div class="alert alert-{{ message.tags|default:'info' }}" role="alert">{{ message }}</div>
+        {% endfor %}
+        {% block content %}{% endblock %}
+      </div>
+      {% include "partials/credit.html" %}
+    </main>
+  </div>
+</body>
+</html>

@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% load thai_date %}
+{% block title %}งานรอดำเนินการ{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">งานรอดำเนินการ</h1>
+    <p class="page-sub">{{ tasks|length }} เรื่อง เรียงตามกำหนดเวลา</p>
+  </div>
+</div>
+{% if delegators %}
+<div class="alert alert-info">ขณะนี้ท่านปฏิบัติราชการแทน: {% for d in delegators %}<strong>{{ d.display_name_th }}</strong>{% if not forloop.last %}, {% endif %}{% endfor %} งานของผู้มอบหมายจึงแสดงในรายการนี้ด้วย</div>
+{% endif %}
+<div class="table-panel">
+  <div class="table-responsive">
+    <table class="table align-middle">
+      <thead><tr><th class="ps-3">เลขทะเบียน</th><th>เรื่อง</th><th>งาน</th><th>กำหนด</th></tr></thead>
+      <tbody>
+        {% for t in tasks %}
+        {% with doc=t.instance.document %}
+        <tr>
+          <td class="ps-3 fw-semibold text-nowrap"><a href="{% url 'documents:detail' doc.pk %}">{{ doc.registration.display_no|default:"-" }}</a></td>
+          <td>{{ doc.subject }}<div class="mt-1">{% include "documents/_badges.html" %}</div></td>
+          <td>{{ t.get_kind_display }}<div class="small text-secondary">{{ t.holder_label }}</div></td>
+          <td class="text-nowrap">{% if t.due_at %}<span class="{% if t.is_overdue %}text-danger fw-semibold{% endif %}">{{ t.due_at|thai_datetime }}</span>{% if t.is_overdue %}<div><span class="es-badge bad">เกินกำหนด</span></div>{% endif %}{% else %}-{% endif %}</td>
+        </tr>
+        {% endwith %}
+        {% empty %}
+        <tr><td colspan="4" class="text-center text-secondary py-4">ไม่มีงานรอดำเนินการ</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

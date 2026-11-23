@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+{% load static thai_date %}
+{% block title %}{{ doc.registration.display_no|default:"เอกสาร" }}{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div style="min-width:0">
+    <span class="small text-secondary"><a href="{% url 'documents:list' %}">เอกสาร</a> / {{ doc.registration.display_no|default:"-" }}</span>
+    <div class="d-flex flex-wrap gap-2 align-items-center mt-1">
+      <span class="fw-bold" style="color:var(--es-primary)">{{ doc.get_kind_display }} {{ doc.registration.display_no|default:"" }}</span>
+      {% include "documents/_badges.html" %}
+    </div>
+    <h1 class="page-title mt-1">{{ doc.subject }}</h1>
+  </div>
+  {% if can_edit %}
+    <a class="btn btn-outline-secondary" href="{% url 'documents:edit' doc.pk %}">แก้ไขข้อมูล</a>
+  {% endif %}
+</div>
+
+{% include "workflow/_stepper.html" %}
+
+<div class="row g-3">
+  <div class="col-12 col-xl-7">
+    <section class="card-panel">
+      <h2 class="panel-title">ไฟล์</h2>
+      {% if preview %}
+      <div class="doc-preview" id="doc-preview"
+           data-pdfjs-url="{% static 'vendor/pdfjs/pdf.min.js' %}?v={{ ASSET_VERSION }}"
+           data-worker-url="{% static 'vendor/pdfjs/pdf.worker.min.js' %}?v={{ ASSET_VERSION }}"
+           data-file-url="{% url 'documents:file' preview.pk %}">
+        <div class="doc-preview-bar">
+          <span class="doc-preview-name text-truncate" data-role="name">{{ preview.original_name }}</span>
+          <span class="small text-secondary text-nowrap" data-role="pages-label"></span>
+          <button type="button" class="btn btn-sm btn-outline-secondary" data-action="zoom-out" aria-label="ย่อ">−</button>
+          <button type="button" class="btn btn-sm btn-outline-secondary" data-action="zoom-in" aria-label="ขยาย">+</button>
+{% if can_calendar %}<a class="btn btn-sm btn-outline-secondary text-nowrap" data-role="calendar" href="{% url 'documents:calendar' doc.pk %}?file={{ preview.pk }}">ลงปฏิทิน</a>{% endif %}
+          <a class="btn btn-sm btn-navy text-nowrap" data-role="full" href="{% url 'documents:viewer' preview.pk %}">เปิดเต็มจอ</a>
+        </div>
+        <div class="doc-preview-pages" data-role="pages" tabindex="0" aria-label="ตัวอย่างไฟล์">
+          <p class="text-secondary p-4 mb-0" data-role="status">กำลังโหลดไฟล์…</p>
+        </div>
+      </div>
+      <p class="small text-secondary mt-2 mb-3">สั่งการ/เกษียน ลงนาม และปักหมุดความเห็น ทำได้ในหน้าเปิดเต็มจอ</p>
+      {% endif %}
+      <div class="d-flex flex-column gap-2">
+        {% for f in attachments %}
+        <div class="file-row{% if f == preview %} is-shown{% endif %}" data-file-row="{{ f.pk }}">
+          <span class="file-icon" aria-hidden="true">PDF</span>
+          <div class="flex-grow-1" style="min-width:0">
+            <div class="fw-semibold text-truncate">{{ f.original_name }}</div>
+            <div class="small text-secondary">
+              {% if f.is_signed_copy %}<span class="es-badge warn">ฉบับลงนาม</span> {% endif %}{% if f.is_main %}ไฟล์หลัก{% else %}สิ่งที่ส่งมาด้วย{% endif %}
+              {% if f.page_count %} · {{ f.page_count }} หน้า{% endif %} · {{ f.size|filesizeformat }}
+            </div>
+          </div>
+          <button type="button" class="btn btn-sm btn-outline-secondary text-nowrap" data-action="show-file"
+                  data-file-url="{% url 'documents:file' f.pk %}" data-viewer-url="{% url 'documents:viewer' f.pk %}" data-calendar-url="{% url 'documents:calendar' doc.pk %}?file={{ f.pk }}"
+                  data-name="{{ f.original_name }}"{% if f == preview %} aria-pressed="true"{% else %} aria-pressed="false"{% endif %}>{% if f == preview %}กำลังแสดง{% else %}แสดง{% endif %}</button>
+          <a class="btn btn-sm btn-outline-secondary text-nowrap" href="{% url 'documents:file' f.pk %}?download=1">ดาวน์โหลด</a>
+        </div>
+        {% empty %}
+        <p class="text-secondary mb-0">ไม่มีไฟล์</p>
+        {% endfor %}
+      </div>
+      <p class="small text-secondary mt-2 mb-0">การเปิดดูและดาวน์โหลดทุกครั้งถูกบันทึกในประวัติด้านล่าง</p>
+    </section>
+
+    <section class="card-panel mt-3">
+      <h2 class="panel-title">ข้อมูลหนังสือ</h2>
+      {% if letter %}
+      <dl class="env-list">
+        <dt>เรียน</dt><dd>{{ doc.recipient|default:"-" }}</dd>
+        {% if letter.reference %}<dt>อ้างถึง</dt><dd>{{ letter.reference }}</dd>{% endif %}
+        {% if letter.enclosures %}<dt>สิ่งที่ส่งมาด้วย</dt><dd style="white-space:pre-line">{{ letter.enclosures }}</dd>{% endif %}
+        <dt>ผู้ลงนาม</dt><dd>{{ letter.signer_name|default:"-" }}</dd>
+        <dt>กลุ่มงานเจ้าของเรื่อง</dt><dd>{{ doc.owner_department|default:"ยังไม่ระบุ" }}</dd>
+        <dt>สร้างโดย</dt><dd>{{ doc.created_by.display_name_th }} · {{ doc.created_at|thai_datetime }}</dd>
+      </dl>
+      {% else %}
+      <dl class="env-list">
+        <dt>เลขที่หนังสือต้นทาง</dt><dd>{{ doc.source_doc_no|default:"-" }}</dd>
+        <dt>ลงวันที่</dt><dd>{{ doc.source_doc_date|thai_date:"full"|default:"-" }}</dd>
+        <dt>จาก</dt><dd>{{ doc.source_org|default:"-" }}</dd>
+        <dt>เรียน</dt><dd>{{ doc.recipient|default:"-" }}</dd>
+        <dt>กลุ่มงานเจ้าของเรื่อง</dt><dd>{{ doc.owner_department|default:"ยังไม่ระบุ" }}</dd>
+        <dt>กำหนดเสร็จ</dt><dd>{{ doc.due_date|thai_date|default:"-" }}</dd>
+        <dt>ลงทะเบียนโดย</dt><dd>{{ doc.created_by.display_name_th }} · {{ doc.created_at|thai_datetime }}</dd>
+        {% if doc.note %}<dt>หมายเหตุ</dt><dd style="white-space:pre-line">{{ doc.note }}</dd>{% endif %}
+      </dl>
+      {% endif %}
+    </section>
+  </div>
+
+  <div class="col-12 col-xl-5 d-flex flex-column gap-3">
+    {% include "letters/_panel.html" %}
+    {% include "archive/_panel.html" %}
+    {% include "workflow/_panel.html" %}
+    {% include "signatures/_panel.html" %}
+    <section class="card-panel">
+      <h2 class="panel-title">ประวัติเอกสาร</h2>
+      <ul class="timeline">
+        {% for e in events %}
+        <li>
+          <span class="dot" aria-hidden="true"></span>
+          <div>
+            <div class="fw-semibold">{{ e.get_action_display }}{% if e.detail.file %} · {{ e.detail.file }}{% endif %}{% if e.detail.number %} · {{ e.detail.number }}{% endif %}</div>
+            {% if e.detail.reason %}<div class="small">เหตุผล: {{ e.detail.reason }}</div>{% endif %}
+            {% if e.detail.comment %}<div class="small" style="white-space:pre-line">{{ e.detail.comment }}</div>{% endif %}
+            {% if e.detail.assignees %}<div class="small">ผู้รับผิดชอบ: {{ e.detail.assignees|join:", " }}</div>{% endif %}
+            {% if e.detail.on_behalf_of %}<div class="small">ดำเนินการแทน {{ e.detail.on_behalf_of }}</div>{% endif %}
+            {% if e.detail.sig_type %}<div class="small">{{ e.detail.sig_type }} · หน้า {{ e.detail.page }}</div>{% endif %}
+            {% if e.detail.fields %}<div class="small">แก้ไข {{ e.detail.fields|length }} รายการ</div>{% endif %}
+            <div class="small text-secondary">{{ e.actor.display_name_th|default:"ระบบ" }} · {{ e.created_at|thai_datetime }}</div>
+          </div>
+        </li>
+        {% empty %}
+        <li class="text-secondary">ยังไม่มีประวัติ</li>
+        {% endfor %}
+      </ul>
+    </section>
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}{% if preview %}<script type="module" src="{% static 'js/doc-preview.js' %}?v={{ ASSET_VERSION }}"></script>{% endif %}{% endblock %}

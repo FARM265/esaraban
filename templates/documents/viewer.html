@@ -1,0 +1,172 @@
+{% extends "base.html" %}
+{% load static thai_date %}
+{% block title %}{{ attachment.original_name }}{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div style="min-width:0">
+    <span class="small text-secondary"><a href="{% url 'documents:detail' doc.pk %}">{{ doc.registration.display_no|default:"เอกสาร" }}</a> / ดูไฟล์</span>
+    <h1 class="page-title text-truncate" style="font-size:22px">{{ attachment.original_name }}</h1>
+    {% if attachment.is_signed_copy %}<span class="es-badge warn">ฉบับลงนาม (ภาพลายมือชื่อ)</span>{% endif %}
+  </div>
+  <div class="d-flex gap-2">
+    <a class="btn btn-outline-secondary" href="{% url 'documents:file' attachment.pk %}?download=1">ดาวน์โหลด</a>
+    <a class="btn btn-outline-secondary" href="{% url 'documents:detail' doc.pk %}">กลับหน้าเอกสาร</a>
+  </div>
+</div>
+
+<div id="pdf-app" class="viewer-shell"
+     data-pdfjs-url="{% static 'vendor/pdfjs/pdf.min.js' %}?v={{ ASSET_VERSION }}"
+     data-worker-url="{% static 'vendor/pdfjs/pdf.worker.min.js' %}?v={{ ASSET_VERSION }}"
+     data-file-url="{% url 'documents:file' attachment.pk %}"
+     data-annotations-url="{% url 'annotations:list' attachment.pk %}"
+     data-delete-url-template="{% url 'annotations:delete' 0 %}"
+     data-move-url-template="{% url 'annotations:move' 0 %}"
+     data-can-endorse="{{ can_endorse|yesno:'1,0' }}"
+     data-can-annotate="{{ can_annotate|yesno:'1,0' }}"
+     data-signature-url="{% if sign_has_image %}{% url 'signatures:my_signature_image' %}{% endif %}"
+     data-start-sign="{{ start_sign|yesno:'1,0' }}"
+     data-sign-default="{{ sign_default }}"
+     data-csrf="{{ csrf_token }}">
+  <section class="viewer-main" aria-label="ตัวแสดงเอกสาร PDF">
+    <div class="viewer-toolbar">
+      <button type="button" class="btn btn-sm btn-outline-secondary" data-action="zoom-out" aria-label="ย่อ">−</button>
+      <span class="small" data-role="zoom-label">100%</span>
+      <button type="button" class="btn btn-sm btn-outline-secondary" data-action="zoom-in" aria-label="ขยาย">+</button>
+      <span class="small text-secondary ms-2" data-role="page-count"></span>
+      <span class="flex-grow-1"></span>
+      {% if can_endorse %}
+      <button type="button" class="btn btn-sm btn-outline-secondary" data-action="toggle-text" aria-pressed="false">สั่งการ/เกษียน</button>
+      {% endif %}
+      {% if can_annotate %}
+      <button type="button" class="btn btn-sm btn-outline-secondary" data-action="toggle-pin" aria-pressed="false">ปักหมุดความเห็น</button>
+      {% endif %}
+      {% if sign_has_image %}
+      <button type="button" class="btn btn-sm btn-outline-secondary" data-action="toggle-sign" aria-pressed="false">วางลายเซ็น</button>
+      {% endif %}
+    </div>
+    {% if can_endorse %}
+    <div class="ink-toolbar" data-role="ink-toolbar" hidden>
+      <span class="small fw-medium">หมึก</span>
+      <div class="d-flex gap-1" role="radiogroup" aria-label="สีหมึก">
+        {% for key, label, hex in ink_colors %}
+        <button type="button" class="ink-swatch{% if forloop.first %} active{% endif %}" role="radio" aria-checked="{% if forloop.first %}true{% else %}false{% endif %}"
+                data-color="{{ key }}" data-hex="{{ hex }}" style="--ink: {{ hex }}" aria-label="หมึก{{ label }}" title="{{ label }}"></button>
+        {% endfor %}
+      </div>
+      <span class="small fw-medium ms-2">ขนาด</span>
+      <div class="btn-group btn-group-sm" role="radiogroup" aria-label="ขนาดตัวอักษร">
+        {% for key, label in ink_sizes %}
+        <button type="button" class="btn btn-outline-secondary ink-size{% if key == 'M' %} active{% endif %}" role="radio" aria-checked="{% if key == 'M' %}true{% else %}false{% endif %}" data-size="{{ key }}">{{ label }}</button>
+        {% endfor %}
+      </div>
+      <span class="small text-secondary ms-2">คลิกบนหน้าเอกสารแล้วพิมพ์ · Ctrl+Enter บันทึก · Esc ยกเลิก</span>
+    </div>
+    {% endif %}
+    <div class="viewer-pages" data-role="pages">
+      <p class="text-secondary p-4" data-role="status">กำลังโหลดเอกสาร…</p>
+    </div>
+  </section>
+
+  <aside class="viewer-side" aria-label="ความเห็นและการลงนาม">
+    {% if sig_checks %}
+    <section class="card-panel mb-3" data-role="sig-checks">
+      <h2 class="panel-title">ลายมือชื่อดิจิทัลในไฟล์นี้</h2>
+      <ol class="list-unstyled mb-2">
+        {% for c in sig_checks %}
+        <li class="sig-check">
+          <div class="d-flex align-items-center gap-2 flex-wrap">
+            <span class="fw-semibold">{{ c.signer|default:"ไม่ทราบผู้ลงนาม" }}</span>
+            {% if c.ok %}<span class="es-badge ok">ถูกต้อง</span>{% elif c.intact and c.signature_valid %}<span class="es-badge warn">ไม่รู้จักผู้ออกใบรับรอง</span>{% else %}<span class="es-badge bad">ไม่ผ่าน</span>{% endif %}
+          </div>
+          {% if c.signing_time %}<div class="small text-secondary">{{ c.signing_time|thai_datetime }}</div>{% endif %}
+          {% for p in c.problems %}<div class="small text-danger">{{ p }}</div>{% endfor %}
+          {% if c.ok and not c.covers_whole_file %}
+            <div class="small {% if c.later_signed %}text-secondary{% else %}text-danger{% endif %}">
+              {% if c.later_signed %}หลังจากนี้มีลายมือชื่อดิจิทัลเพิ่ม ส่วนที่ท่านนี้ลงนามไม่ถูกแก้ไข{% else %}มีข้อมูลเพิ่มต่อท้ายหลังลงนามโดยไม่มีลายมือชื่อกำกับ ควรตรวจสอบ{% endif %}
+            </div>
+          {% endif %}
+        </li>
+        {% endfor %}
+      </ol>
+      <p class="small text-secondary mb-0">ใบรับรองทดสอบของระบบ ไม่มีผลทางกฎหมาย
+        <a href="{% url 'signatures:test_ca' %}">ดาวน์โหลดใบรับรอง CA ทดสอบ</a> เพื่อให้โปรแกรมอ่าน PDF บนเครื่องทดสอบตรวจได้</p>
+    </section>
+    {% endif %}
+
+    {% if can_endorse or can_sign %}
+    <section class="card-panel mb-3" data-role="final-panel">
+      <h2 class="panel-title">{% if can_endorse and can_sign %}สั่งการ/เกษียน และลงนาม{% elif can_sign %}ลงนาม{% else %}สั่งการ/เกษียน{% endif %}</h2>
+      <p class="small text-secondary mb-3">{% if can_endorse and can_sign %}ทำอย่างใดอย่างหนึ่งหรือทั้งสองอย่างก็ได้ แล้วกดปุ่มด้านล่างครั้งเดียว ระบบรวมทุกอย่างเป็นไฟล์ฉบับใหม่ไฟล์เดียว{% else %}เมื่อพร้อมแล้วกดปุ่มด้านล่าง ระบบสร้างไฟล์ฉบับใหม่{% endif %} ไฟล์นี้ยังเก็บไว้ครบ</p>
+
+      {% if can_endorse %}
+      <div class="final-item">
+        <div class="fw-medium">ข้อความสั่งการ/เกษียน</div>
+        <div class="small" data-role="text-count" aria-live="polite">ยังไม่มีข้อความสั่งการ/เกษียน</div>
+        <div class="small text-secondary">กด "สั่งการ/เกษียน" ที่แถบเครื่องมือ เลือกสีหมึกและขนาด แล้วคลิกบนหน้าเอกสารเพื่อพิมพ์</div>
+      </div>
+      {% endif %}
+
+      {% if can_sign %}
+      <div class="final-item">
+        <div class="fw-medium">ลายเซ็น</div>
+        {% if not sign_has_image %}
+          <p class="small mb-2 mt-1">ท่านยังไม่มีภาพลายมือชื่อในระบบ</p>
+          <a class="btn btn-sm btn-outline-secondary" href="{% url 'signatures:my_signature' %}">อัปโหลดภาพลายมือชื่อ</a>
+        {% else %}
+          <div class="small" data-role="sign-where" aria-live="polite">ยังไม่ได้วาง กด "วางลายเซ็น" แล้วคลิกตรงจุดที่จะลงนาม</div>
+          <div data-role="sign-controls" hidden>
+            <fieldset class="mt-2">
+              <legend class="small fw-medium mb-1">ประเภทลายมือชื่อ</legend>
+              {% if digital_enabled %}
+              <label class="sig-kind"><input type="radio" name="sig_kind" value="digital" form="final-form" data-role="sig-kind" checked>
+                <span><span class="es-badge ok">ลายมือชื่อดิจิทัล</span> ใบรับรองทดสอบ ตรวจสอบได้ว่าไฟล์ถูกแก้ไขหรือไม่ <strong>ไม่มีผลทางกฎหมาย</strong></span></label>
+              {% endif %}
+              <label class="sig-kind"><input type="radio" name="sig_kind" value="image" form="final-form" data-role="sig-kind"{% if not digital_enabled %} checked{% endif %}{% if has_digital %} disabled{% endif %}>
+                <span><span class="es-badge warn">ภาพลายมือชื่อ</span> ไม่ใช่ Digital Signature ตรวจสอบด้วยใบรับรองไม่ได้{% if has_digital %} (ใช้กับไฟล์นี้ไม่ได้ เพราะจะทำให้ลายมือชื่อดิจิทัลเดิมเสีย){% endif %}</span></label>
+            </fieldset>
+            <label for="sign-size" class="form-label small fw-medium mt-2 mb-0">ขนาดลายเซ็น</label>
+            <input id="sign-size" type="range" class="form-range" min="10" max="50" step="1" value="25" data-role="sign-size">
+            <button type="button" class="btn btn-link btn-sm p-0 text-danger" data-action="remove-sign">เอาลายเซ็นออก</button>
+          </div>
+        {% endif %}
+      </div>
+      {% endif %}
+
+      {% if has_digital %}<p class="small text-secondary">ไฟล์นี้มีลายมือชื่อดิจิทัลแล้ว จึงสั่งการ/เกษียนลงเนื้อหาไม่ได้ (จะทำให้ลายมือชื่อเดิมเสีย) แต่ลงนามดิจิทัลเพิ่มได้</p>{% endif %}
+      <form method="post" action="{% url 'signatures:final_copy' attachment.pk %}" id="final-form" data-role="final-form" novalidate>
+        {% csrf_token %}
+        <input type="hidden" name="page"><input type="hidden" name="x"><input type="hidden" name="y"><input type="hidden" name="w">
+        {% if sign_has_image and sign_require_otp %}
+        <div data-role="code-box" hidden>
+          <label for="final-code" class="form-label fw-medium">รหัสยืนยัน 6 หลักจากแอป</label>
+          <input id="final-code" name="code" class="form-control" inputmode="numeric" autocomplete="one-time-code" maxlength="6">
+        </div>
+        {% endif %}
+        <div class="text-danger small mt-1" data-role="final-error" role="alert"></div>
+        <button type="submit" class="btn btn-navy w-100 mt-2" data-role="final-button" disabled>สร้างไฟล์ฉบับใหม่</button>
+      </form>
+    </section>
+    {% endif %}
+
+    <section class="card-panel">
+      <h2 class="panel-title">ความเห็นบนเอกสาร</h2>
+      <form data-role="note-form" class="mb-3" hidden novalidate>
+        <div class="small text-secondary mb-1" data-role="note-where"></div>
+        <label for="note-text" class="form-label fw-medium">ความเห็น</label>
+        <textarea id="note-text" class="form-control" rows="3" maxlength="2000"></textarea>
+        <div class="text-danger small mt-1" data-role="note-error" role="alert"></div>
+        <div class="d-flex gap-2 mt-2">
+          <button type="submit" class="btn btn-sm btn-navy">บันทึก</button>
+          <button type="button" class="btn btn-sm btn-outline-secondary" data-action="cancel-note">ยกเลิก</button>
+        </div>
+      </form>
+      <p class="small text-secondary" data-role="hint">{% if can_annotate %}กด "ปักหมุดความเห็น" แล้วคลิกตำแหน่งบนหน้าเอกสาร{% else %}เอกสารที่ถูกยกเลิกแล้วเพิ่มความเห็นไม่ได้{% endif %}</p>
+      <ol class="note-list" data-role="note-list"></ol>
+    </section>
+  </aside>
+</div>
+<noscript><div class="alert alert-warning mt-3">ตัวแสดงเอกสารต้องใช้ JavaScript ท่านยังดาวน์โหลดไฟล์ได้จากปุ่มด้านบน</div></noscript>
+{% endblock %}
+{% block extra_js %}
+<script type="module" src="{% static 'js/pdf-viewer.js' %}?v={{ ASSET_VERSION }}"></script>
+{% endblock %}

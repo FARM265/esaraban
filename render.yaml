@@ -1,0 +1,53 @@
+# ตั้งค่าสำหรับ Render (Blueprint): สร้างเว็บ E-Saraban จาก Dockerfile ในคลิกเดียว
+# ฐานข้อมูลและที่เก็บไฟล์ใช้ Supabase ดูขั้นตอนทั้งหมดที่ docs/cloud-render-supabase.md
+# ค่าที่เป็น sync: false Render จะถามให้กรอกตอนสร้าง (ห้ามใส่ค่าลับลงในไฟล์นี้)
+services:
+  - type: web
+    name: esaraban
+    runtime: docker
+    plan: free            # เปลี่ยนเป็น starter หรือใหญ่กว่าเมื่อใช้งานจริงจัง (แผนฟรีหลับเมื่อไม่มีคนใช้ 15 นาที)
+    region: singapore
+    healthCheckPath: /healthz
+    envVars:
+      - key: DJANGO_SETTINGS_MODULE
+        value: config.settings.prod
+      - key: SECRET_KEY
+        generateValue: true   # สร้างให้อัตโนมัติ ต้องคัดลอกไปเก็บสำรองทันที (ถ้าหาย ไฟล์เอกสารทั้งหมดเปิดไม่ได้)
+      - key: ALLOWED_HOSTS
+        value: 127.0.0.1,localhost   # ชื่อ xxx.onrender.com ระบบเพิ่มให้เอง
+      - key: DATABASE_URL
+        sync: false           # connection string แบบ Session pooler จาก Supabase (ลงท้าย ?sslmode=require)
+      - key: ESARABAN_STORAGE_BACKEND
+        value: s3
+      - key: S3_ENDPOINT_URL
+        sync: false           # Supabase > Storage > S3 Connection > Endpoint
+      - key: S3_REGION
+        sync: false           # Supabase > Storage > S3 Connection > Region
+      - key: S3_BUCKET
+        value: esaraban-files
+      - key: S3_ACCESS_KEY_ID
+        sync: false
+      - key: S3_SECRET_ACCESS_KEY
+        sync: false
+      - key: DJANGO_SUPERUSER_USERNAME
+        sync: false           # ชื่อผู้ดูแลระบบคนแรก (สร้างให้ตอนเริ่มระบบครั้งแรก)
+      - key: DJANGO_SUPERUSER_EMAIL
+        sync: false
+      - key: DJANGO_SUPERUSER_PASSWORD
+        sync: false           # ลบตัวแปรนี้ออกหลังเข้าสู่ระบบครั้งแรกแล้ว
+      - key: ORG_CODE
+        sync: false           # รหัสหนังสือของหน่วยงาน เช่น ปช 0099
+      - key: SERVE_STATIC
+        value: "True"
+      - key: TRUST_PROXY_IP_HEADER
+        value: "True"
+      - key: PROXY_CLIENT_IP_HEADER
+        value: none           # Render ไม่มี header IP เฉพาะที่เชื่อถือได้ ใช้ X-Forwarded-For แทน
+      - key: PROXY_XFF_HOPS
+        value: "2"            # ตรวจที่หน้าสถานะระบบว่า IP ตรงกับเครื่องจริง ถ้าไม่ตรงลอง 1
+      - key: PORT
+        value: "8000"
+      - key: WEB_CONCURRENCY
+        value: "2"            # แผนฟรีมี RAM 512 MB
+      - key: PYTHONUNBUFFERED
+        value: "1"

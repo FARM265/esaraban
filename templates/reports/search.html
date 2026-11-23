@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% load thai_date %}
+{% block title %}ค้นหาและติดตาม{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">ค้นหาและติดตาม</h1>
+    <p class="page-sub">ค้นจากเอกสารที่ท่านมีสิทธิ์ และดูว่าแต่ละเรื่องอยู่ที่ใคร เกินกำหนดหรือไม่</p>
+  </div>
+</div>
+
+{% if not can_read %}
+<div class="alert alert-info">บทบาทของท่าน (ผู้ดูแลระบบ/ผู้ตรวจสอบ) ไม่ได้รับสิทธิ์อ่านเอกสาร จึงไม่มีผลการค้นหา ใช้หน้าภาพรวมหรือ Audit Log แทน</div>
+{% endif %}
+
+<form method="get" class="card-panel mb-3" role="search">
+  <div class="row g-2 align-items-end">
+    <div class="col-12 col-lg-5">
+      <label for="{{ form.q.id_for_label }}" class="form-label small fw-medium">{{ form.q.label }}</label>{{ form.q }}
+    </div>
+    <div class="col-6 col-lg-2"><label for="{{ form.kind.id_for_label }}" class="form-label small fw-medium">{{ form.kind.label }}</label>{{ form.kind }}</div>
+    <div class="col-6 col-lg-2"><label for="{{ form.status.id_for_label }}" class="form-label small fw-medium">{{ form.status.label }}</label>{{ form.status }}</div>
+    <div class="col-12 col-lg-3"><label for="{{ form.department.id_for_label }}" class="form-label small fw-medium">{{ form.department.label }}</label>{{ form.department }}</div>
+    <div class="col-6 col-lg-2"><label for="{{ form.date_from.id_for_label }}" class="form-label small fw-medium">{{ form.date_from.label }}</label>{{ form.date_from }}</div>
+    <div class="col-6 col-lg-2"><label for="{{ form.date_to.id_for_label }}" class="form-label small fw-medium">{{ form.date_to.label }}</label>{{ form.date_to }}</div>
+    <div class="col-12 col-lg-6 d-flex flex-wrap gap-3 pb-1">
+      {% for f in form %}{% if f.field.widget.input_type == "checkbox" %}
+      <div class="form-check mb-0">{{ f }}<label class="form-check-label small" for="{{ f.id_for_label }}">{{ f.label }}</label></div>
+      {% endif %}{% endfor %}
+    </div>
+    <div class="col-12 col-lg-2 d-flex gap-2">
+      <button type="submit" class="btn btn-navy flex-grow-1">ค้นหา</button>
+      <a class="btn btn-outline-secondary" href="{% url 'reports:search' %}">ล้าง</a>
+    </div>
+  </div>
+  {% for field in form %}{% for err in field.errors %}<div class="text-danger small mt-1">{{ field.label }}: {{ err }}</div>{% endfor %}{% endfor %}
+</form>
+
+<div class="table-panel">
+  <div class="table-responsive">
+    <table class="table align-middle">
+      <thead><tr><th class="ps-3">เลขทะเบียน</th><th>เรื่อง</th><th>สถานะ</th><th>อยู่ที่</th><th>กำหนด</th></tr></thead>
+      <tbody>
+        {% for row in rows %}{% with doc=row.doc track=row.track %}
+        <tr>
+          <td class="ps-3 fw-semibold text-nowrap"><a href="{% url 'documents:detail' doc.pk %}">{{ doc.registration.display_no|default:"ร่าง" }}</a></td>
+          <td>{{ doc.subject }}<div class="small text-secondary">{{ doc.get_kind_display }}{% if doc.owner_department %} · {{ doc.owner_department }}{% endif %} · {{ doc.created_at|thai_date }}</div></td>
+          <td>{% include "documents/_badges.html" %}</td>
+          <td>{% if track %}{{ track.holders|join:", " }}{% else %}<span class="text-secondary">-</span>{% endif %}</td>
+          <td class="text-nowrap">
+            {% if track.due %}{{ track.due|thai_date }}{% elif doc.due_date %}{{ doc.due_date|thai_date }}{% else %}-{% endif %}
+            {% if track.overdue %}<span class="es-badge bad">เกินกำหนด</span>{% endif %}
+          </td>
+        </tr>
+        {% endwith %}{% empty %}
+        <tr><td colspan="5" class="text-center text-secondary py-4">ไม่พบเอกสาร</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+<p class="small text-secondary mt-2">พบ {{ page.paginator.count }} รายการ</p>
+{% if page.paginator.num_pages > 1 %}
+<nav class="d-flex justify-content-between align-items-center" aria-label="หน้า">
+  <span class="small text-secondary">หน้า {{ page.number }} จาก {{ page.paginator.num_pages }}</span>
+  <div class="d-flex gap-2">
+    {% if page.has_previous %}<a class="btn btn-sm btn-outline-secondary" href="?{{ querystring }}&page={{ page.previous_page_number }}">ก่อนหน้า</a>{% endif %}
+    {% if page.has_next %}<a class="btn btn-sm btn-outline-secondary" href="?{{ querystring }}&page={{ page.next_page_number }}">ถัดไป</a>{% endif %}
+  </div>
+</nav>
+{% endif %}
+{% endblock %}

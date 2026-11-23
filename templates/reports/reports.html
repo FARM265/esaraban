@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}รายงาน{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">รายงาน</h1>
+    <p class="page-sub">ดาวน์โหลดทะเบียนและรายงานเป็น Excel หรือ PDF จากเอกสารที่ท่านมีสิทธิ์เห็น</p>
+  </div>
+</div>
+<form method="get" class="row g-3" novalidate>
+  <div class="col-12 col-xl-8">
+    <section class="card-panel">
+      {% include "partials/form_errors.html" %}
+      <fieldset class="mb-3">
+        <legend class="form-label fw-medium fs-6">{{ form.kind.label }}</legend>
+        <div class="kind-cards">
+          {% for radio in form.kind %}<label class="kind-card" for="{{ radio.id_for_label }}">{{ radio.tag }} <span>{{ radio.choice_label }}</span></label>{% endfor %}
+        </div>
+      </fieldset>
+      <div class="row">
+        <div class="col-6 col-md-4">{% include "partials/field.html" with field=form.date_from %}</div>
+        <div class="col-6 col-md-4">{% include "partials/field.html" with field=form.date_to %}</div>
+        <div class="col-12 col-md-4">{% include "partials/field.html" with field=form.department %}</div>
+      </div>
+      <div class="form-check mb-3">{{ form.overdue_only }}<label class="form-check-label" for="{{ form.overdue_only.id_for_label }}">{{ form.overdue_only.label }}</label></div>
+      <div class="d-flex flex-wrap gap-2 border-top pt-3">
+        <button type="submit" name="format" value="xlsx" class="btn btn-navy px-4">ดาวน์โหลด Excel</button>
+        <button type="submit" name="format" value="pdf" class="btn btn-outline-secondary px-4">ดาวน์โหลด PDF</button>
+      </div>
+    </section>
+  </div>
+  <aside class="col-12 col-xl-4">
+    <section class="card-panel">
+      <h2 class="panel-title">หมายเหตุ</h2>
+      <ul class="small mb-0 ps-3">
+        <li>ทะเบียนหนังสือรับ/ส่ง ใช้หัวคอลัมน์ตามแบบทะเบียนในระเบียบงานสารบรรณ</li>
+        <li>รายงานเรื่องค้างแสดงสถานะ ณ ตอนดาวน์โหลด ว่าค้างอยู่ที่ใครและเกินกำหนดกี่วัน</li>
+        <li>PDF ได้สูงสุด 1,500 รายการต่อครั้ง ถ้ามากกว่านั้นใช้ Excel</li>
+        <li>ผู้ดูแลระบบและผู้ตรวจสอบไม่มีสิทธิ์อ่านเอกสาร รายงานจึงไม่มีรายการ (ใช้หน้าภาพรวมหรือ Audit Log)</li>
+        <li>การดาวน์โหลดรายงานทุกครั้งบันทึกใน Audit Log</li>
+      </ul>
+    </section>
+  </aside>
+</form>
+{% endblock %}
