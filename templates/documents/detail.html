@@ -33,13 +33,14 @@
           <button type="button" class="btn btn-sm btn-outline-secondary" data-action="zoom-out" aria-label="ย่อ">−</button>
           <button type="button" class="btn btn-sm btn-outline-secondary" data-action="zoom-in" aria-label="ขยาย">+</button>
 {% if can_calendar %}<a class="btn btn-sm btn-outline-secondary text-nowrap" data-role="calendar" href="{% url 'documents:calendar' doc.pk %}?file={{ preview.pk }}">ลงปฏิทิน</a>{% endif %}
+{% if can_endorse %}<a class="btn btn-sm btn-endorse text-nowrap" data-role="endorse" href="{% url 'documents:viewer' preview.pk %}?tool=endorse">สั่งการ/เกษียน</a>{% endif %}
           <a class="btn btn-sm btn-navy text-nowrap" data-role="full" href="{% url 'documents:viewer' preview.pk %}">เปิดเต็มจอ</a>
         </div>
         <div class="doc-preview-pages" data-role="pages" tabindex="0" aria-label="ตัวอย่างไฟล์">
           <p class="text-secondary p-4 mb-0" data-role="status">กำลังโหลดไฟล์…</p>
         </div>
       </div>
-      <p class="small text-secondary mt-2 mb-3">สั่งการ/เกษียน ลงนาม และปักหมุดความเห็น ทำได้ในหน้าเปิดเต็มจอ</p>
+      <p class="small text-secondary mt-2 mb-3">{% if can_endorse %}กด "สั่งการ/เกษียน" แล้วคลิกบนหนังสือตรงที่ต้องการเขียน ลงนามและปักหมุดความเห็นทำได้ในหน้าเปิดเต็มจอ{% else %}ลงนามและปักหมุดความเห็นทำได้ในหน้าเปิดเต็มจอ{% endif %}</p>
       {% endif %}
       <div class="d-flex flex-column gap-2">
         {% for f in attachments %}

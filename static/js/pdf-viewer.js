@@ -567,7 +567,8 @@ try {
   statusEl?.remove();
   await renderPages();
   await loadNotes();
-  if (cfg.startSign === "1" && cfg.signatureUrl) setMode("sign");
+  if (cfg.startEndorse === "1" && textBtn) setMode("text");
+  else if (cfg.startSign === "1" && cfg.signatureUrl) setMode("sign");
 } catch (err) {
   statusEl.textContent = `เปิดเอกสารไม่สำเร็จ: ${err.message}`;
   statusEl.classList.add("text-danger");

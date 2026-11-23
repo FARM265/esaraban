@@ -6,6 +6,7 @@ const nameEl = box.querySelector('[data-role="name"]');
 const pagesLabel = box.querySelector('[data-role="pages-label"]');
 const fullLink = box.querySelector('[data-role="full"]');
 const calendarLink = box.querySelector('[data-role="calendar"]');
+const endorseLink = box.querySelector('[data-role="endorse"]');
 
 let pdfjsLib = null;
 let pdf = null;
@@ -94,6 +95,7 @@ document.querySelectorAll('[data-action="show-file"]').forEach((btn) => {
     nameEl.textContent = btn.dataset.name;
     fullLink.href = btn.dataset.viewerUrl;
     if (calendarLink) calendarLink.href = btn.dataset.calendarUrl;
+    if (endorseLink) endorseLink.href = `${btn.dataset.viewerUrl}?tool=endorse`;
     box.scrollIntoView({ behavior: "smooth", block: "start" });
     load(btn.dataset.fileUrl);
   });

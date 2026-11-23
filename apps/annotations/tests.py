@@ -155,6 +155,16 @@ class EndorsementTests(TestCase):
         for size in ("S", "M", "L"):
             self.assertContains(viewer, f'data-size="{size}"')
 
+    def test_endorse_shortcut_on_document_page(self):
+        detail = reverse("documents:detail", args=[self.doc.pk])
+        viewer = reverse("documents:viewer", args=[self.attachment.pk])
+        login_verified(self.client, self.head)
+        self.assertContains(self.client.get(detail), f'href="{viewer}?tool=endorse"')
+        self.assertContains(self.client.get(viewer + "?tool=endorse"), 'data-start-endorse="1"')
+        self.client.logout()
+        login_verified(self.client, self.staff)
+        self.assertNotContains(self.client.get(detail), 'data-role="endorse"')
+
     def test_invalid_color_size_or_kind_rejected(self):
         login_verified(self.client, self.head)
         for extra in [{"color": "pink"}, {"size": "XL"}, {"kind": "IMAGE"}, {"content": "บรรทัด\n" * 40}]:

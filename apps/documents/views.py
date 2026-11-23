@@ -84,6 +84,7 @@ def document_detail(request, pk):
     from apps.archive.panel import context_for as archive_context
     from apps.letters.panel import context_for as letter_context
     from apps.signatures.panel import context_for as signing_context
+    from apps.annotations import services as endorsing
     from apps.workflow.panel import context_for
 
     document = _get_visible(request, pk)
@@ -96,6 +97,7 @@ def document_detail(request, pk):
         "events": document.events.select_related("actor")[:50],
         "can_edit": access.can_edit(request.user, document),
         "can_calendar": _can_calendar(request.user),
+        "can_endorse": endorsing.can_endorse(request.user, document),
     }
     context.update(context_for(request.user, document))
     context.update(signing_context(request.user, document))
@@ -162,6 +164,7 @@ def attachment_viewer(request, pk):
             "sign_has_image": can_sign and signing.active_signature_image(request.user) is not None,
             "sign_require_otp": settings.ESARABAN_SIGN_REQUIRE_OTP,
             "start_sign": request.GET.get("sign") == "1",
+            "start_endorse": request.GET.get("tool") == "endorse",
             "sign_default": sign_default,
             "has_digital": has_digital,
             "sig_checks": sig_checks,

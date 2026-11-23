@@ -80,6 +80,9 @@ body { font-family: var(--bs-body-font-family); background: var(--es-bg); color:
 .btn-navy { background: var(--es-primary); color: #fff; border: 0; min-height: 44px; }
 .btn-navy:hover, .btn-navy:focus { background: var(--es-primary-dark); color: #fff; }
 .btn-navy:focus-visible { outline: 3px solid var(--es-focus); outline-offset: 2px; }
+.btn-endorse { background: #fff; color: var(--es-primary); border: 1px solid var(--es-primary); font-weight: 600; }
+.btn-endorse:hover, .btn-endorse:focus { background: var(--es-primary); color: #fff; border-color: var(--es-primary); }
+.btn-endorse:focus-visible { outline: 3px solid var(--es-focus); outline-offset: 2px; }
 
 .status-pill { display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 999px; font-weight: 600; font-size: 15px; }
 .status-pill.ok { background: var(--es-ok-bg); color: var(--es-ok-fg); }

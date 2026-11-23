@@ -25,6 +25,7 @@
      data-can-annotate="{{ can_annotate|yesno:'1,0' }}"
      data-signature-url="{% if sign_has_image %}{% url 'signatures:my_signature_image' %}{% endif %}"
      data-start-sign="{{ start_sign|yesno:'1,0' }}"
+     data-start-endorse="{{ start_endorse|yesno:'1,0' }}"
      data-sign-default="{{ sign_default }}"
      data-csrf="{{ csrf_token }}">
   <section class="viewer-main" aria-label="ตัวแสดงเอกสาร PDF">
