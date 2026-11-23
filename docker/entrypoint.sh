@@ -20,14 +20,33 @@ else:
         connect_timeout=3,
     )
     connect = lambda: psycopg.connect(**params)
+last_error = None
 for attempt in range(30):
     try:
         connect().close()
         print("[entrypoint] database is ready")
         sys.exit(0)
-    except psycopg.OperationalError:
+    except psycopg.OperationalError as exc:
+        last_error = exc
         time.sleep(2)
 print("[entrypoint] database not reachable after 60s", file=sys.stderr)
+# บอกสาเหตุโดยไม่แสดงรหัสผ่าน เพื่อแก้ค่า DATABASE_URL ได้ถูกจุด
+if os.environ.get("DATABASE_URL"):
+    from urllib.parse import urlsplit
+
+    url = os.environ["DATABASE_URL"].strip()
+    parts = urlsplit(url)
+    print(f"[entrypoint] DATABASE_URL host={parts.hostname} port={parts.port} user={parts.username} "
+          f"db={parts.path.lstrip('/')} query={parts.query or '-'}", file=sys.stderr)
+    if parts.hostname and parts.hostname.startswith("db.") and parts.hostname.endswith(".supabase.co"):
+        print("[entrypoint] HINT: this is Supabase 'Direct connection' (IPv6 only). Use the 'Session pooler' "
+              "string instead (host ends with pooler.supabase.com, user postgres.<project-ref>)", file=sys.stderr)
+    if "YOUR-PASSWORD" in url or "[" in (parts.password or ""):
+        print("[entrypoint] HINT: replace [YOUR-PASSWORD] with the real database password (no brackets)", file=sys.stderr)
+    if url != os.environ["DATABASE_URL"]:
+        print("[entrypoint] HINT: DATABASE_URL has spaces or line breaks at the start/end", file=sys.stderr)
+if last_error is not None:
+    print(f"[entrypoint] last error: {str(last_error).strip()[:300]}", file=sys.stderr)
 sys.exit(1)
 EOF
 
