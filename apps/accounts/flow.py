@@ -3,6 +3,8 @@
 
 ขั้นที่ 1 ผ่านรหัสผ่านแล้ว -> เก็บ PENDING_USER (ยังไม่ถือว่าเข้าสู่ระบบ)
 ขั้นที่ 2 ผ่าน MFA แล้ว   -> เรียก django login() และตั้ง MFA_VERIFIED
+ถ้าปิด MFA (ESARABAN_LOGIN_REQUIRE_MFA=False) ข้ามขั้นที่ 2 ไปเลย MFA_VERIFIED จึงหมายถึง
+"เข้าสู่ระบบผ่านหน้าเข้าสู่ระบบของระบบครบแล้ว" ซึ่ง EnforceMFAMiddleware ใช้ตรวจ
 """
 import time
 

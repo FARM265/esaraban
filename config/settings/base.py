@@ -131,6 +131,9 @@ LOGOUT_REDIRECT_URL = "accounts:login"
 # MFA: ค่าว่าง = ใช้ SECRET_KEY สร้างกุญแจเข้ารหัส (ถ้าเปลี่ยน SECRET_KEY ผู้ใช้ต้องตั้ง MFA ใหม่)
 MFA_ENCRYPTION_KEY = env.str("MFA_ENCRYPTION_KEY", default="")
 MFA_ISSUER = "E-Saraban NACC CM"
+# ขอรหัส 6 หลักจากแอป Authenticator ตอนเข้าสู่ระบบ ปิดไว้ตามที่ผู้ใช้ขอ (เข้าด้วยชื่อผู้ใช้และรหัสผ่านอย่างเดียว)
+# ระบบเปิดบนอินเทอร์เน็ต ผู้รับผิดชอบควรพิจารณาเปิด (True) ถ้ามีข้อมูลสำคัญ เพื่อกันกรณีรหัสผ่านรั่ว
+ESARABAN_LOGIN_REQUIRE_MFA = env.bool("ESARABAN_LOGIN_REQUIRE_MFA", default=False)
 
 # ล็อกบัญชีชั่วคราว
 LOGIN_LOCKOUT_MINUTES = env.int("LOGIN_LOCKOUT_MINUTES", default=15)

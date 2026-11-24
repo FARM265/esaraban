@@ -72,8 +72,9 @@ ORG_CODE=${ORG:-ปช XXXX}
 PRIVATE_STORAGE_ROOT=private_storage
 # ใบรับรองทดลอง (self-signed) จึงปิด HSTS ไว้ เปลี่ยนเป็น 31536000 เมื่อมีโดเมนและใบรับรองจริง
 SECURE_HSTS_SECONDS=0
-# ระบบเปิดบนอินเทอร์เน็ต จึงให้ยืนยันรหัส 6 หลักก่อนลงนาม
-ESARABAN_SIGN_REQUIRE_OTP=True
+# ยืนยันตัวตน 2 ขั้นด้วยแอป Authenticator ปิดไว้ (เข้าด้วยรหัสผ่านอย่างเดียว)
+# ถ้าต้องการเปิด ตั้ง ESARABAN_LOGIN_REQUIRE_MFA=True ก่อน แล้วจึงตั้ง ESARABAN_SIGN_REQUIRE_OTP=True ได้
+ESARABAN_LOGIN_REQUIRE_MFA=False
 EOT
     chmod 600 .env.docker
     FIRST_INSTALL=1

@@ -50,6 +50,8 @@ def login_view(request):
                 error = _locked_message() if security.is_locked_out(username, ip) else GENERIC_LOGIN_ERROR
             else:
                 flow.start_pending(request, user, request.POST.get("next") or request.GET.get("next", ""))
+                if not settings.ESARABAN_LOGIN_REQUIRE_MFA:
+                    return _finish(request, user, stage=LoginAttempt.Stage.PASSWORD)
                 return redirect("accounts:mfa_verify" if user.mfa_enabled else "accounts:mfa_setup")
 
     return render(
@@ -69,10 +71,8 @@ def _verify_attempt_failed(request, user):
     return None
 
 
-def _finish(request, user):
-    security.record_attempt(
-        user.username, security.client_ip(request), success=True, stage=LoginAttempt.Stage.MFA
-    )
+def _finish(request, user, stage=LoginAttempt.Stage.MFA):
+    security.record_attempt(user.username, security.client_ip(request), success=True, stage=stage)
     next_url = flow.complete_login(request, user)
     if user.must_change_password:
         return redirect("accounts:password_change")

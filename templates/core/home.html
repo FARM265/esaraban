@@ -53,7 +53,7 @@
           <p class="mb-0 text-secondary">ท่านยังไม่ได้รับบทบาทใด ติดต่อผู้ดูแลระบบเพื่อกำหนดสิทธิ์</p>
         {% endfor %}
       </div>
-      <p class="mb-3">ยืนยันตัวตน 2 ขั้น: {% if user.mfa_enabled %}<span class="es-badge ok">เปิดใช้งาน</span>{% else %}<span class="es-badge bad">ยังไม่ตั้ง</span>{% endif %}</p>
+      {% if LOGIN_REQUIRE_MFA %}<p class="mb-3">ยืนยันตัวตน 2 ขั้น: {% if user.mfa_enabled %}<span class="es-badge ok">เปิดใช้งาน</span>{% else %}<span class="es-badge bad">ยังไม่ตั้ง</span>{% endif %}</p>{% endif %}
       <a class="btn btn-outline-secondary" href="{% url 'accounts:profile' %}">จัดการบัญชีของฉัน</a>
       {% if user|can:"manage_users" %}
         <a class="btn btn-navy ms-1" href="{% url 'accounts:user_list' %}">จัดการผู้ใช้</a>

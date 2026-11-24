@@ -1,4 +1,5 @@
 """หน้าจัดการผู้ใช้ บทบาท และกลุ่มงาน สำหรับผู้ที่มีสิทธิ์ manage_users และหน้าบัญชีของฉัน"""
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.core.paginator import Paginator
@@ -85,7 +86,8 @@ def user_create(request):
         _audit(request, "USER_CREATED", f"สร้างผู้ใช้ {user.username}", user)
         messages.success(
             request,
-            f"สร้างผู้ใช้ {user.username} แล้ว ผู้ใช้ต้องตั้งค่า MFA และเปลี่ยนรหัสผ่านเมื่อเข้าสู่ระบบครั้งแรก",
+            f"สร้างผู้ใช้ {user.username} แล้ว ผู้ใช้ต้อง"
+            f"{'ตั้งค่า MFA และ' if settings.ESARABAN_LOGIN_REQUIRE_MFA else ''}เปลี่ยนรหัสผ่านเมื่อเข้าสู่ระบบครั้งแรก",
         )
         return redirect("accounts:user_detail", pk=user.pk)
     return render(request, "accounts/users/form.html", {"form": form, "creating": True})

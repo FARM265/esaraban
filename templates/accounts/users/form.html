@@ -15,7 +15,7 @@
       <div class="col-12 col-md-6">{% include "partials/field.html" %}</div>
     {% endfor %}
   </div>
-  <p class="form-text">หลังบันทึก กำหนดบทบาทให้ผู้ใช้ได้ในหน้าถัดไป ผู้ใช้ต้องตั้งค่า MFA และเปลี่ยนรหัสผ่านเองเมื่อเข้าสู่ระบบครั้งแรก</p>
+  <p class="form-text">หลังบันทึก กำหนดบทบาทให้ผู้ใช้ได้ในหน้าถัดไป ผู้ใช้ต้อง{% if LOGIN_REQUIRE_MFA %}ตั้งค่า MFA และ{% endif %}เปลี่ยนรหัสผ่านเองเมื่อเข้าสู่ระบบครั้งแรก</p>
   <div class="d-flex gap-2 justify-content-end">
     <a class="btn btn-outline-secondary" href="{% url 'accounts:user_list' %}">ยกเลิก</a>
     <button type="submit" class="btn btn-navy px-4">บันทึก</button>

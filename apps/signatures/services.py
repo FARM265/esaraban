@@ -149,7 +149,7 @@ def create_final_copy(*, attachment, user, signature=None, otp_code="", ip=None)
                     position=f"x={signature['x']:.3f} y={signature['y']:.3f} w={signature['w']:.3f}",
                     source_sha256=attachment.sha256,
                     signed_sha256=hashlib.sha256(result).hexdigest(),
-                    mfa_verified=True,
+                    mfa_verified=settings.ESARABAN_LOGIN_REQUIRE_MFA or settings.ESARABAN_SIGN_REQUIRE_OTP,
                     ip_address=ip or None,
                     signed_at=moment,
                 )

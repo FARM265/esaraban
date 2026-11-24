@@ -88,6 +88,10 @@ class SigningTests(TestCase):
     def final_url(self):
         return reverse("signatures:final_copy", args=[self.main.pk])
 
+    def test_record_says_no_mfa_when_login_and_signing_skip_it(self):
+        self.upload()
+        self.assertFalse(self.sign().mfa_verified)  # ไม่บันทึกว่ายืนยัน MFA ถ้าไม่ได้ยืนยันจริง
+
     def test_upload_replaces_previous_image(self):
         first = self.upload()
         second = self.upload()
@@ -97,6 +101,7 @@ class SigningTests(TestCase):
         png = services.read_signature_png(second)
         self.assertEqual(Image.open(BytesIO(png)).mode, "RGBA")
 
+    @override_settings(ESARABAN_LOGIN_REQUIRE_MFA=True)
     def test_sign_creates_new_version_and_keeps_original(self):
         self.upload()
         record = self.sign()

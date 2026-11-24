@@ -117,6 +117,7 @@ class TOTPTests(TestCase):
 # ---------------------------------------------------------------------------
 
 
+@override_settings(ESARABAN_LOGIN_REQUIRE_MFA=True)
 class LoginFlowTests(TestCase):
     def setUp(self):
         self.user = make_user("somchai", roles=[RoleCode.STAFF])
@@ -210,6 +211,7 @@ class LoginFlowTests(TestCase):
         self.assertEqual(self.client.get(reverse("core:home")).status_code, 302)
 
 
+@override_settings(ESARABAN_LOGIN_REQUIRE_MFA=True)
 class MFASetupTests(TestCase):
     def test_first_login_requires_mfa_enrolment(self):
         user = make_user("newbie")
@@ -250,6 +252,26 @@ class RegenerateBackupCodesTests(TestCase):
         response = self.client.post(reverse("accounts:regenerate_backup_codes"), {"code": current_code(secret)})
         self.assertRedirects(response, reverse("accounts:backup_codes"), fetch_redirect_response=False)
         self.assertFalse(security.use_backup_code(user, old[0]))  # ชุดเดิมใช้ไม่ได้แล้ว
+
+
+@override_settings(ESARABAN_LOGIN_REQUIRE_MFA=False)
+class PasswordOnlyLoginTests(TestCase):
+    """ปิด MFA: ใส่ชื่อผู้ใช้และรหัสผ่านถูกแล้วเข้าระบบได้ทันที ไม่มีหน้ารหัส 6 หลัก"""
+
+    def test_password_logs_in_directly(self):
+        make_user("direct", roles=[RoleCode.STAFF])
+        response = self.client.post(reverse("accounts:login"), {"username": "direct", "password": PASSWORD})
+        self.assertRedirects(response, reverse("core:home"), fetch_redirect_response=False)
+        self.assertEqual(self.client.get(reverse("core:home")).status_code, 200)
+        self.assertNotContains(self.client.get(reverse("accounts:login"), follow=True), "ขั้นที่ 1 จาก 2")
+
+    def test_wrong_password_still_rejected_and_locks_out(self):
+        make_user("direct2")
+        for _ in range(5):
+            self.client.post(reverse("accounts:login"), {"username": "direct2", "password": "wrong"})
+        response = self.client.post(reverse("accounts:login"), {"username": "direct2", "password": PASSWORD})
+        self.assertContains(response, "ระงับการเข้าสู่ระบบชั่วคราว")
+        self.assertNotIn("_auth_user_id", self.client.session)
 
 
 class SessionGuardTests(TestCase):

@@ -24,7 +24,7 @@
         <p>รับ ส่ง เสนอ ลงนาม และจัดเก็บหนังสือราชการในที่เดียว ทุกการเปิดอ่านและดาวน์โหลดถูกบันทึกเพื่อการตรวจสอบ</p>
       </div>
       <div class="fine">
-        <span>{% include "partials/icon.html" with name="lock" %} เชื่อมต่อผ่าน HTTPS และยืนยันตัวตน 2 ขั้น</span>
+        <span>{% include "partials/icon.html" with name="lock" %} เชื่อมต่อผ่าน HTTPS{% if LOGIN_REQUIRE_MFA %} และยืนยันตัวตน 2 ขั้น{% endif %}</span>
         <span>{% include "partials/icon.html" with name="shield" %} สำหรับเจ้าหน้าที่ที่ได้รับอนุญาตเท่านั้น</span>
       </div>
     </section>
