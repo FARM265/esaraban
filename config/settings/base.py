@@ -237,6 +237,9 @@ ESARABAN_NOTIFY_INCOMING_ROLES = env.str("ESARABAN_NOTIFY_INCOMING_ROLES", defau
 # ส่งแจ้งเตือนนอกระบบใน thread แยก หน้าเว็บจึงไม่ต้องรอ (ปิดในเทสต์)
 NOTIFY_ASYNC = env.bool("NOTIFY_ASYNC", default=True)
 
+# ชื่อไฟล์ยืนยันเจ้าของเว็บจาก Google Search Console (วิธี "ไฟล์ HTML") เช่น google1234abcd5678ef90.html
+GOOGLE_SITE_VERIFICATION_FILE = env.str("GOOGLE_SITE_VERIFICATION_FILE", default="")
+
 # อ่านข้อความจากหนังสือที่เป็นภาพสแกน (OCR ด้วย tesseract ภาษาไทย ติดตั้งใน Docker image) สำหรับลงปฏิทิน
 ESARABAN_OCR_ENABLED = env.bool("ESARABAN_OCR_ENABLED", default=True)
 ESARABAN_OCR_MAX_PAGES = 2

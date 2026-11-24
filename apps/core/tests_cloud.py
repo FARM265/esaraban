@@ -92,3 +92,15 @@ class HealthCheckBehindProxyTests(TestCase):
         self.assertEqual(response.content, b"ok")
         # หน้าอื่นยังตรวจชื่อโดเมนตามปกติ
         self.assertEqual(self.client.get("/accounts/login/", HTTP_HOST="10.0.0.5:8000").status_code, 400)
+
+
+class GoogleVerificationTests(TestCase):
+    @override_settings(GOOGLE_SITE_VERIFICATION_FILE="google0123456789abcdef.html")
+    def test_only_configured_file_is_served_without_login(self):
+        ok = self.client.get("/google0123456789abcdef.html")
+        self.assertEqual(ok.status_code, 200)
+        self.assertEqual(ok.content, b"google-site-verification: google0123456789abcdef.html")
+        self.assertEqual(self.client.get("/googleffffffffffffffff.html").status_code, 404)
+
+    def test_off_by_default(self):
+        self.assertEqual(self.client.get("/google0123456789abcdef.html").status_code, 404)

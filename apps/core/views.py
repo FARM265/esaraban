@@ -68,3 +68,12 @@ def status(request):
         "storage_backend": settings.ESARABAN_STORAGE_BACKEND,
     }
     return render(request, "core/status.html", context)
+
+
+@login_not_required
+def google_verification(request, name):
+    """ไฟล์ยืนยันความเป็นเจ้าของเว็บใน Google Search Console (ใช้ขอให้ Google ตรวจทบทวนคำเตือน "Dangerous site")
+    ตั้งชื่อไฟล์ที่ Google ให้ใน GOOGLE_SITE_VERIFICATION_FILE เช่น google1234abcd5678ef90.html"""
+    if not settings.GOOGLE_SITE_VERIFICATION_FILE or name != settings.GOOGLE_SITE_VERIFICATION_FILE:
+        raise Http404
+    return HttpResponse(f"google-site-verification: {name}", content_type="text/html; charset=utf-8")
