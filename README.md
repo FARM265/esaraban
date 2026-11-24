@@ -32,6 +32,7 @@
 - [ติดตั้งบน Google Cloud (เครื่องเช่าที่กรุงเทพ)](docs/google-cloud.md)
 - [ย้ายขึ้นคลาวด์: Render + Supabase](docs/cloud-render-supabase.md)
 - [คู่มือผู้ใช้ แยกตามบทบาท](docs/user-guide.md)
+- [แจ้งเตือนทาง LINE และอีเมล](docs/notifications.md)
 - [การสำรองและกู้คืนข้อมูล](docs/backup-restore.md)
 - [รายการตรวจก่อนใช้งานจริง](docs/security-checklist.md)
 

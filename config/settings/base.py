@@ -211,6 +211,32 @@ ESARABAN_DIGITAL_SIGNING = env.bool("ESARABAN_DIGITAL_SIGNING", default=True)
 # ขอรหัส 6 หลักจากแอปก่อนลงนามทุกครั้ง ปิดไว้ตามที่ผู้ใช้ขอในช่วงทดลอง (ยังต้องเข้าสู่ระบบด้วย MFA ตามปกติ)
 # ผู้รับผิดชอบควรพิจารณาเปิด (True) ก่อนใช้งานจริง เพื่อยืนยันว่าผู้ลงนามเป็นเจ้าของบัญชีจริง ณ ขณะลงนาม
 ESARABAN_SIGN_REQUIRE_OTP = env.bool("ESARABAN_SIGN_REQUIRE_OTP", default=False)
+# ---------------------------------------------------------------------------
+# แจ้งเตือนนอกระบบ (อีเมล / LINE) ผู้ใช้เลือกเปิดเองที่ "ตั้งค่าการแจ้งเตือน" ค่าลับทั้งหมดมาจาก Environment Variables
+# ---------------------------------------------------------------------------
+# ที่อยู่เว็บของระบบ ใช้ทำลิงก์ในข้อความแจ้งเตือน (บน Render ใช้ RENDER_EXTERNAL_URL อัตโนมัติ)
+ESARABAN_SITE_URL = env.str("ESARABAN_SITE_URL", default="") or env.str("RENDER_EXTERNAL_URL", default="")
+# อีเมล: none = ปิด, smtp = ส่งผ่าน SMTP (เช่น Gmail ในเครื่องสำนักงาน), brevo = ส่งผ่าน Brevo API (ใช้บน Render ฟรี
+# เพราะ Render แผนฟรีปิดพอร์ต SMTP)
+NOTIFY_EMAIL_BACKEND = env.str("NOTIFY_EMAIL_BACKEND", default="none")
+NOTIFY_EMAIL_FROM = env.str("NOTIFY_EMAIL_FROM", default="")
+NOTIFY_EMAIL_FROM_NAME = env.str("NOTIFY_EMAIL_FROM_NAME", default="E-Saraban")
+BREVO_API_KEY = env.str("BREVO_API_KEY", default="")
+EMAIL_HOST = env.str("EMAIL_HOST", default="smtp.gmail.com")
+EMAIL_PORT = env.int("EMAIL_PORT", default=587)
+EMAIL_HOST_USER = env.str("EMAIL_HOST_USER", default="")
+EMAIL_HOST_PASSWORD = env.str("EMAIL_HOST_PASSWORD", default="")
+EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", default=True)
+EMAIL_TIMEOUT = 15
+# LINE Official Account (Messaging API) ว่าง = ปิดการแจ้งเตือนทาง LINE
+LINE_CHANNEL_ACCESS_TOKEN = env.str("LINE_CHANNEL_ACCESS_TOKEN", default="")
+LINE_CHANNEL_SECRET = env.str("LINE_CHANNEL_SECRET", default="")
+LINE_OA_ID = env.str("LINE_OA_ID", default="")  # Basic ID ของบัญชี เช่น @123abcde
+# แจ้ง "หนังสือเข้าใหม่" เมื่อลงทะเบียนรับ ให้ผู้มีบทบาทเหล่านี้ที่ดูแลกลุ่มงานเจ้าของเรื่อง (ว่าง = ไม่แจ้ง)
+ESARABAN_NOTIFY_INCOMING_ROLES = env.str("ESARABAN_NOTIFY_INCOMING_ROLES", default="HEAD,EXECUTIVE")
+# ส่งแจ้งเตือนนอกระบบใน thread แยก หน้าเว็บจึงไม่ต้องรอ (ปิดในเทสต์)
+NOTIFY_ASYNC = env.bool("NOTIFY_ASYNC", default=True)
+
 # อ่านข้อความจากหนังสือที่เป็นภาพสแกน (OCR ด้วย tesseract ภาษาไทย ติดตั้งใน Docker image) สำหรับลงปฏิทิน
 ESARABAN_OCR_ENABLED = env.bool("ESARABAN_OCR_ENABLED", default=True)
 ESARABAN_OCR_MAX_PAGES = 2

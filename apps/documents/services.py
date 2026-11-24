@@ -42,11 +42,35 @@ def register_incoming(*, book, data, main_file, extra_files, user, ip=None):
                 )
             log_event(document, user, DocumentEvent.Action.REGISTERED, ip,
                       number=number.display_no, files=1 + len(extra_files))
+            notify_incoming(document, user)
     except Exception:
         for key in written:
             storage.remove_quietly(key)
         raise
     return document
+
+
+def notify_incoming(document, actor):
+    """แจ้งผู้เกี่ยวข้องว่ามีหนังสือเข้าใหม่ (ตามบทบาทใน ESARABAN_NOTIFY_INCOMING_ROLES ที่ดูแลกลุ่มงานเจ้าของเรื่อง)"""
+    from django.conf import settings
+
+    from apps.notifications.services import notify
+    from apps.workflow.services import eligible_users
+
+    roles = [r.strip() for r in settings.ESARABAN_NOTIFY_INCOMING_ROLES.split(",") if r.strip()]
+    users = []
+    for role in roles:
+        if document.owner_department is None and role == "HEAD":
+            continue  # ไม่ระบุกลุ่มงาน: ไม่แจ้งหัวหน้าทุกกลุ่มงาน
+        users.extend(eligible_users(role, document.owner_department, document.secrecy))
+    if not users:
+        return
+    title = "หนังสือเข้าใหม่"
+    if document.urgency:  # ด่วน ด่วนมาก ด่วนที่สุด
+        title = f"หนังสือเข้าใหม่ ({document.get_urgency_display()})"
+    source = f" · จาก {document.source_org}" if document.source_org else ""
+    notify(users, title, body=f"{document.registration.display_no} {document.subject}{source}",
+           document=document, exclude=actor)
 
 
 TRACKED_FIELDS = [

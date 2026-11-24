@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% load thai_date %}
+{% block title %}ตั้งค่าการแจ้งเตือน{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">ตั้งค่าการแจ้งเตือน</h1>
+    <p class="page-sub">รับแจ้งเตือนทางอีเมลหรือ LINE เมื่อมีหนังสือเข้า มีเรื่องรอพิจารณา หรือได้รับมอบหมายงาน โดยไม่ต้องเปิดเว็บ</p>
+  </div>
+  <a class="btn btn-outline-secondary" href="{% url 'notifications:index' %}">กลับไปการแจ้งเตือน</a>
+</div>
+
+{% if setting.last_error %}
+<div class="alert alert-warning" role="alert">
+  ส่งแจ้งเตือนครั้งล่าสุดไม่สำเร็จ ({{ setting.last_error_at|thai_datetime }}): {{ setting.last_error }}
+</div>
+{% endif %}
+
+<div class="row g-3">
+  <div class="col-12 col-xl-6">
+    <section class="card-panel h-100">
+      <h2 class="panel-title">อีเมล</h2>
+      {% if email_ready %}
+      <form method="post" novalidate>
+        {% csrf_token %}
+        <input type="hidden" name="action" value="email">
+        <div class="mb-3">
+          <label for="email" class="form-label fw-medium">อีเมลที่ใช้รับแจ้งเตือน</label>
+          <input id="email" type="email" name="email" class="form-control" value="{{ user.email }}" autocomplete="email" placeholder="name@example.com">
+        </div>
+        <div class="form-check form-switch mb-3">
+          <input class="form-check-input" type="checkbox" role="switch" id="email-on" name="email_enabled" value="1"{% if setting.email_enabled %} checked{% endif %}>
+          <label class="form-check-label" for="email-on">ส่งการแจ้งเตือนทางอีเมล</label>
+        </div>
+        <button type="submit" class="btn btn-navy">บันทึก</button>
+      </form>
+      {% else %}
+      <p class="mb-0 text-secondary">ผู้ดูแลระบบยังไม่ได้ตั้งค่าการส่งอีเมลของระบบ จึงยังเปิดช่องทางนี้ไม่ได้</p>
+      {% endif %}
+    </section>
+  </div>
+
+  <div class="col-12 col-xl-6">
+    <section class="card-panel h-100">
+      <h2 class="panel-title">LINE</h2>
+      {% if not line_ready %}
+      <p class="mb-0 text-secondary">ผู้ดูแลระบบยังไม่ได้เชื่อมบัญชี LINE ของสำนักงาน จึงยังเปิดช่องทางนี้ไม่ได้</p>
+      {% elif setting.line_linked %}
+      <p><span class="es-badge ok">เชื่อมแล้ว</span> เมื่อ {{ setting.line_linked_at|thai_datetime }}</p>
+      <form method="post" class="mb-3">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="line_toggle">
+        <div class="form-check form-switch mb-3">
+          <input class="form-check-input" type="checkbox" role="switch" id="line-on" name="line_enabled" value="1"{% if setting.line_enabled %} checked{% endif %}>
+          <label class="form-check-label" for="line-on">ส่งการแจ้งเตือนทาง LINE</label>
+        </div>
+        <button type="submit" class="btn btn-navy">บันทึก</button>
+      </form>
+      <form method="post" class="border-top pt-3">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="line_unlink">
+        <button type="submit" class="btn btn-outline-danger btn-sm">ยกเลิกการเชื่อม LINE</button>
+      </form>
+      {% elif link_code %}
+      <ol class="line-steps">
+        <li>
+          <div class="fw-semibold">เพิ่มเพื่อนบัญชี LINE ของสำนักงาน</div>
+          <div class="small text-secondary mb-2">สแกนด้วยมือถือ หรือ <a href="{{ line_add_url }}" target="_blank" rel="noopener">กดที่นี่ถ้าเปิดจากมือถือ</a></div>
+          <img src="{{ line_add_qr }}" alt="QR code เพิ่มเพื่อนบัญชี LINE ของสำนักงาน" width="150" height="150" class="qr">
+        </li>
+        <li>
+          <div class="fw-semibold">ส่งรหัสนี้ในแชต</div>
+          <div class="link-code" aria-label="รหัสเชื่อม LINE">{{ link_code }}</div>
+          <div class="small text-secondary mb-2">สแกน QR ด้านล่าง LINE จะเปิดแชตพร้อมรหัสให้ กดส่งได้เลย หรือพิมพ์รหัสเอง ใช้ได้ภายใน 10 นาที</div>
+          <img src="{{ line_send_qr }}" alt="QR code เปิดแชตพร้อมรหัสเชื่อม" width="150" height="150" class="qr">
+        </li>
+        <li>
+          <div class="fw-semibold">เมื่อ LINE ตอบว่า "เชื่อมแล้ว" กดปุ่มนี้</div>
+          <a class="btn btn-navy mt-2" href="{% url 'notifications:settings' %}">ตรวจสถานะ</a>
+        </li>
+      </ol>
+      {% else %}
+      <p>เชื่อม LINE ของท่านกับระบบ ใช้เวลาไม่ถึง 1 นาที ต้องใช้มือถือที่มี LINE</p>
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="line_code">
+        <button type="submit" class="btn btn-navy">เชื่อม LINE</button>
+      </form>
+      {% endif %}
+    </section>
+  </div>
+</div>
+
+{% if email_ready and setting.email_enabled or line_ready and setting.line_enabled %}
+<section class="card-panel mt-3">
+  <h2 class="panel-title">ทดสอบ</h2>
+  <form method="post" class="d-flex flex-wrap align-items-center gap-3">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="test">
+    <button type="submit" class="btn btn-outline-secondary">ส่งข้อความทดสอบ</button>
+    <span class="small text-secondary">ส่งไปทุกช่องทางที่เปิดไว้</span>
+  </form>
+</section>
+{% endif %}
+
+<p class="small text-secondary mt-3">หนังสือชั้นลับขึ้นไป ระบบไม่ส่งชื่อเรื่องออกไปทางอีเมลหรือ LINE แจ้งเพียงว่ามีเรื่องให้เปิดดูในระบบ</p>
+{% endblock %}

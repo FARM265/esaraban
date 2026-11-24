@@ -152,6 +152,75 @@ class FlowTests(WorkflowTestBase):
         self.assertEqual(self.doc.workflows.count(), 2)
 
 
+class AssignTests(WorkflowTestBase):
+    """ผู้บริหารสั่งการมอบหัวหน้ากลุ่มงาน แล้วหัวหน้ากลุ่มงานมอบต่อให้บุคลากร"""
+
+    def command_to_head(self):
+        self.start()
+        services.act(self.open_task(), self.head_a, Decision.FORWARD)
+        services.act(self.open_task(), self.exe, Decision.COMMAND, command_text="มอบกลุ่มงาน A ดำเนินการ",
+                     assignees=[self.head_a], due_date=timezone.localdate() + timedelta(days=5))
+        return self.open_task()
+
+    def test_head_assigns_staff_and_command_carries_over(self):
+        head_task = self.command_to_head()
+        self.assertTrue(services.can_assign(self.head_a, head_task))
+        services.act(head_task, self.head_a, Decision.ASSIGN, command_text="ทำรายงานส่งภายในวันศุกร์",
+                     assignees=[self.staff_a1])
+        head_task.refresh_from_db()
+        self.assertEqual(head_task.decision, Decision.ASSIGN)
+        self.assertIn("มอบให้", head_task.comment)
+        staff_task = self.open_task()
+        self.assertEqual(staff_task.assignee, self.staff_a1)
+        self.assertIn("มอบกลุ่มงาน A ดำเนินการ", staff_task.command_text)
+        self.assertIn("ทำรายงานส่งภายในวันศุกร์", staff_task.command_text)
+        self.assertEqual(staff_task.due_at, head_task.due_at)  # ไม่ระบุกำหนดใหม่ ใช้กำหนดเดิม
+        self.assertEqual(self.refresh().status, DocumentStatus.COMMANDED)
+        self.assertTrue(self.staff_a1.notifications.filter(title="ได้รับมอบหมายให้ดำเนินการ").exists())
+        self.assertTrue(self.doc.events.filter(action=DocumentEvent.Action.ASSIGNED).exists())
+
+        services.act(staff_task, self.staff_a1, Decision.COMPLETE, comment="ส่งรายงานแล้ว")
+        self.assertEqual(self.refresh().status, DocumentStatus.DONE)
+
+    def test_staff_cannot_assign(self):
+        self.start()
+        services.act(self.open_task(), self.head_a, Decision.FORWARD)
+        services.act(self.open_task(), self.exe, Decision.COMMAND, command_text="ดำเนินการ", assignees=[self.staff_a1])
+        task = self.open_task()
+        self.assertFalse(services.can_assign(self.staff_a1, task))
+        with self.assertRaises(PermissionDenied):
+            services.act(task, self.staff_a1, Decision.ASSIGN, assignees=[self.staff_b])
+
+    def test_head_of_other_department_cannot_assign(self):
+        self.start()
+        services.act(self.open_task(), self.head_a, Decision.FORWARD)
+        services.act(self.open_task(), self.exe, Decision.COMMAND, command_text="ดำเนินการ", assignees=[self.head_b])
+        task = self.open_task()
+        self.assertFalse(services.can_assign(self.head_b, task))  # เรื่องของกลุ่มงาน A1
+
+    def test_assign_needs_someone(self):
+        head_task = self.command_to_head()
+        with self.assertRaises(ValidationError):
+            services.act(head_task, self.head_a, Decision.ASSIGN, assignees=[])
+
+    def test_assign_through_page(self):
+        head_task = self.command_to_head()
+        login_verified(self.client, self.head_a)
+        page = self.client.get(reverse("documents:detail", args=[self.doc.pk]))
+        self.assertContains(page, "มอบให้บุคลากรดำเนินการ")
+        self.assertContains(page, f'name="assignees" value="{self.staff_a1.pk}"')
+        response = self.client.post(reverse("workflow:act", args=[head_task.pk]),
+                                    {"decision": "ASSIGN", "assignees": [self.staff_a1.pk, self.staff_b.pk]})
+        self.assertRedirects(response, reverse("documents:detail", args=[self.doc.pk]), fetch_redirect_response=False)
+        self.assertEqual(
+            set(services.running_instance(self.doc).tasks.filter(status=TaskStatus.OPEN).values_list("assignee", flat=True)),
+            {self.staff_a1.pk, self.staff_b.pk},
+        )
+        self.client.logout()
+        login_verified(self.client, self.staff_a1)
+        self.assertNotContains(self.client.get(reverse("documents:detail", args=[self.doc.pk])), "มอบให้บุคลากรดำเนินการ")
+
+
 class StartTests(WorkflowTestBase):
     def test_cannot_start_twice(self):
         self.start()

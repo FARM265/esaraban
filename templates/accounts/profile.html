@@ -30,11 +30,15 @@
       <h2 class="panel-title">ความปลอดภัย</h2>
       <dl class="env-list mb-3">
         <dt>รหัสผ่าน</dt><dd><a href="{% url 'accounts:password_change' %}">เปลี่ยนรหัสผ่าน</a></dd>
+        <dt>การแจ้งเตือน</dt><dd><a href="{% url 'notifications:settings' %}">รับแจ้งเตือนทางอีเมล/LINE</a></dd>
+        {% if LOGIN_REQUIRE_MFA %}
         <dt>MFA</dt>
         <dd>{% if user.mfa_enabled %}<span class="es-badge ok">เปิดใช้งาน</span> ตั้งค่าเมื่อ {{ user.mfa_confirmed_at|thai_datetime }}{% else %}<span class="es-badge bad">ยังไม่ตั้งค่า</span>{% endif %}</dd>
         <dt>รหัสสำรอง</dt>
         <dd>เหลือ {{ backup_left }} รหัส{% if backup_left < 3 %} <span class="es-badge bad">ควรสร้างใหม่</span>{% endif %}</dd>
+        {% endif %}
       </dl>
+      {% if LOGIN_REQUIRE_MFA and user.mfa_enabled %}
       <form method="post" action="{% url 'accounts:regenerate_backup_codes' %}" class="border-top pt-3">
         {% csrf_token %}
         <label for="regen-code" class="form-label fw-medium">สร้างรหัสสำรองชุดใหม่</label>
@@ -44,6 +48,7 @@
           <button type="submit" class="btn btn-navy px-3 text-nowrap">สร้างใหม่</button>
         </div>
       </form>
+      {% endif %}
     </section>
   </div>
 </div>

@@ -26,7 +26,11 @@ def notify(users, title, *, body="", document=None, url="", exclude=None):
         ))
         if len(created) >= MAX_RECIPIENTS:
             break
-    return Notification.objects.bulk_create(created)
+    created = Notification.objects.bulk_create(created)
+    from . import channels
+
+    channels.schedule([n.pk for n in created])  # อีเมล / LINE สำหรับผู้ที่เปิดไว้
+    return created
 
 
 def unread_count(user):

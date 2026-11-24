@@ -418,6 +418,7 @@ class DigitalSigningFlowTests(TestCase):
         viewer = self.client.get(reverse("documents:viewer", args=[signed.pk]))
         self.assertNotContains(viewer, 'data-action="toggle-text"')  # เกษียนลงเนื้อหาไม่ได้แล้ว
 
+    @override_settings(ESARABAN_SIGN_REQUIRE_OTP=True)
     def test_wrong_code_issues_no_certificate(self):
         self.post_digital(self.exe, self.secret, self.doc.main_attachment, code="000000")
         self.assertFalse(SigningCertificate.objects.exists())

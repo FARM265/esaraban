@@ -1,0 +1,20 @@
+{# เลือกผู้รับผิดชอบ: ติ๊กได้หลายคน จัดกลุ่มตามกลุ่มงาน ค้นด้วยชื่อได้ ใช้ร่วมกันระหว่างสั่งการและมอบต่อ #}
+<fieldset class="assignee-picker" data-assignee-picker>
+  <legend class="form-label fw-medium">{{ legend|default:"ผู้รับผิดชอบ" }}{% if required %} <span class="text-danger" aria-hidden="true">*</span>{% endif %}</legend>
+  <input type="search" class="form-control form-control-sm mb-2" placeholder="พิมพ์ชื่อเพื่อค้นหา" aria-label="ค้นหาผู้รับผิดชอบ" data-picker-filter>
+  <div class="assignee-list" role="group">
+    {% regroup users by department as groups %}
+    {% for group in groups %}
+    <div class="assignee-group" data-picker-group>
+      <div class="assignee-group-name">{{ group.grouper.name_th|default:"ไม่ระบุกลุ่มงาน" }}</div>
+      {% for u in group.list %}
+      <label class="assignee-item" data-picker-item data-name="{{ u.display_name_th }} {{ u.username }}">
+        <input type="checkbox" class="form-check-input" name="assignees" value="{{ u.pk }}">
+        <span>{{ u.display_name_th }}</span>
+      </label>
+      {% endfor %}
+    </div>
+    {% endfor %}
+  </div>
+  <div class="form-text"><span data-picker-count>ยังไม่ได้เลือก</span> · แสดงเฉพาะผู้มีสิทธิ์ชั้นความลับเพียงพอ{% if hint %} · {{ hint }}{% endif %}</div>
+</fieldset>

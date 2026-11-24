@@ -101,6 +101,16 @@ def can_act(user, task):
     return False, None
 
 
+def can_assign(user, task, on_behalf_of=None):
+    """มอบงานที่ได้รับให้บุคลากรอื่นต่อได้: งานดำเนินการ (ACT) ของหัวหน้ากลุ่มงาน/ผู้บริหารที่ดูแลกลุ่มงานเจ้าของเรื่อง"""
+    from apps.accounts.permissions import has_capability
+
+    if task.kind != TaskKind.ACT or task.status != TaskStatus.OPEN:
+        return False
+    holder = on_behalf_of or user
+    return has_capability(holder, "assign_staff", task.instance.document.owner_department)
+
+
 def involved_document_ids(user):
     """เอกสารที่ผู้ใช้มีงานอยู่ ได้รับมอบหมาย หรือเคยดำเนินการใน workflow"""
     if not getattr(user, "is_authenticated", False):
@@ -245,6 +255,7 @@ EVENT_FOR = {
     Decision.RESUBMIT: DocumentEvent.Action.RESUBMITTED,
     Decision.COMMAND: DocumentEvent.Action.COMMANDED,
     Decision.COMPLETE: DocumentEvent.Action.COMPLETED,
+    Decision.ASSIGN: DocumentEvent.Action.ASSIGNED,
     Decision.CANCEL: DocumentEvent.Action.WORKFLOW_CANCELLED,
 }
 
@@ -269,6 +280,11 @@ def act(task, user, decision, *, comment="", command_text="", assignees=(), due_
         raise ValidationError("กรุณาระบุเหตุผลหรือสิ่งที่ต้องแก้ไข")
     if decision == Decision.COMMAND and not command_text:
         raise ValidationError("กรุณาระบุข้อสั่งการ")
+    if decision == Decision.ASSIGN:
+        if not can_assign(user, task, on_behalf_of):
+            raise PermissionDenied
+        if not assignees:
+            raise ValidationError("กรุณาเลือกผู้รับผิดชอบอย่างน้อย 1 คน")
 
     instance = WorkflowInstance.objects.select_for_update().get(pk=task.instance_id)
     document = Document.objects.select_for_update().get(pk=instance.document_id)
@@ -278,6 +294,7 @@ def act(task, user, decision, *, comment="", command_text="", assignees=(), due_
         if not person.is_active or person.clearance_level < document.secrecy:
             raise ValidationError(f"{person} ไม่มีสิทธิ์รับเรื่องที่มีชั้นความลับระดับนี้")
 
+    original_command = task.command_text  # ข้อสั่งการที่ได้รับ (งานมอบต่อต้องส่งต่อข้อความนี้)
     task.status = TaskStatus.DONE
     task.decision = decision
     task.comment = comment
@@ -317,6 +334,23 @@ def act(task, user, decision, *, comment="", command_text="", assignees=(), due_
             _finish(instance, InstanceStatus.DONE)
             _set_status(document, DocumentStatus.DONE)
             _notify_finished(instance, user)
+    elif decision == Decision.ASSIGN:
+        # ปิดงานของผู้มอบ แล้วเปิดงานให้ผู้รับมอบแต่ละคน ข้อสั่งการเดิมติดไปด้วยเสมอ
+        due_at = _end_of_day(due_date) if due_date else task.due_at
+        note = command_text
+        command_text = f"{original_command}\n{note}".strip() if note else original_command
+        task.command_text = command_text
+        # ประวัติแสดงว่ามอบให้ใคร (ผู้รับมอบแต่ละคนมีงานของตนเองแยกกัน)
+        task.comment = "มอบให้ " + ", ".join(p.display_name_th for p in assignees) + (f"\n{note}" if note else "")
+        task.save(update_fields=["command_text", "comment"])
+        for person in assignees:
+            _create_task(
+                user, instance=instance, kind=TaskKind.ACT, assignee=person, command_text=command_text, due_at=due_at
+            )
+        if due_date:
+            document.due_date = due_date
+            document.save(update_fields=["due_date", "updated_at"])
+        _set_status(document, DocumentStatus.COMMANDED)
     elif decision == Decision.COMPLETE:
         if not instance.tasks.filter(status=TaskStatus.OPEN).exists():
             _finish(instance, InstanceStatus.DONE)

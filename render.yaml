@@ -51,3 +51,16 @@ services:
         value: "2"            # แผนฟรีมี RAM 512 MB
       - key: PYTHONUNBUFFERED
         value: "1"
+      # แจ้งเตือนทาง LINE และอีเมล (ไม่บังคับ ดู docs/notifications.md) ใส่ค่าที่ Render > Environment
+      - key: LINE_OA_ID
+        sync: false           # Basic ID ของบัญชี LINE OA เช่น @123abcde
+      - key: LINE_CHANNEL_SECRET
+        sync: false
+      - key: LINE_CHANNEL_ACCESS_TOKEN
+        sync: false
+      - key: NOTIFY_EMAIL_BACKEND
+        value: brevo          # Render แผนฟรีปิดพอร์ต SMTP จึงส่งผ่าน Brevo API
+      - key: BREVO_API_KEY
+        sync: false
+      - key: NOTIFY_EMAIL_FROM
+        sync: false           # อีเมลผู้ส่งที่ยืนยันใน Brevo แล้ว

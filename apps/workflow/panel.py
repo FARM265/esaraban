@@ -49,6 +49,16 @@ def _stepper(instance, document):
     return items
 
 
+def _assignee_choices(document):
+    """ผู้รับผิดชอบที่เลือกได้ กลุ่มงานเจ้าของเรื่อง (และกลุ่มงานย่อย) ขึ้นก่อน"""
+    from apps.accounts.models import department_with_descendants
+
+    users = list(ActionForm(document=document).fields["assignees"].queryset)
+    own = department_with_descendants({document.owner_department_id}) if document.owner_department_id else set()
+    return sorted(users, key=lambda u: (u.department_id not in own, u.department_id is None,
+                                        u.department.code if u.department_id else ""))
+
+
 def context_for(user, document):
     instance = document.workflows.order_by("-started_at").first()
     running = instance if instance and instance.status == InstanceStatus.RUNNING else None
@@ -62,7 +72,10 @@ def context_for(user, document):
         for task in open_tasks:
             allowed, on_behalf_of = services.can_act(user, task)
             if allowed:
-                my_tasks.append({"task": task, "on_behalf_of": on_behalf_of})
+                my_tasks.append({
+                    "task": task, "on_behalf_of": on_behalf_of,
+                    "can_assign": services.can_assign(user, task, on_behalf_of),
+                })
 
     history = (
         WorkflowTask.objects.filter(instance__document=document, status=TaskStatus.DONE)
@@ -77,6 +90,10 @@ def context_for(user, document):
         "wf_open_tasks": open_tasks,
         "wf_my_tasks": my_tasks,
         "wf_action_form": ActionForm(document=document) if my_tasks else None,
+        "wf_assignee_choices": (
+            _assignee_choices(document)
+            if any(i["task"].kind == TaskKind.COMMAND or i["can_assign"] for i in my_tasks) else []
+        ),
         "wf_history": history,
         "wf_start_form": StartForm(document=document) if can_start(user, document) else None,
     }

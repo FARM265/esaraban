@@ -164,6 +164,22 @@ body { font-family: var(--bs-body-font-family); background: var(--es-bg); color:
 .next-number p { color: #E3D6E7; font-size: 14px; margin: 6px 0 0; line-height: 1.6; }
 .file-row { display: flex; align-items: center; gap: 12px; border: 1px solid var(--es-border); border-radius: 10px; padding: 10px 14px; }
 .file-icon { width: 40px; height: 48px; flex: none; border-radius: 6px; background: var(--es-bad-bg); color: var(--es-bad-fg); font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+/* เลือกผู้รับผิดชอบ */
+.assignee-picker { border: 0; margin: 0; padding: 0; min-width: 0; }
+.assignee-picker legend { float: none; font-size: 1rem; margin-bottom: .5rem; }
+.assignee-list { max-height: 260px; overflow-y: auto; border: 1px solid var(--es-line, #E5DEE7); border-radius: 10px; padding: 4px 0; background: #fff; }
+.assignee-group-name { position: sticky; top: -4px; background: #F3EAF4; color: var(--es-ink); font-size: .85rem; font-weight: 600; padding: 4px 12px; }
+.assignee-item { display: flex; align-items: center; gap: 10px; padding: 8px 12px; min-height: 44px; cursor: pointer; }
+.assignee-item:hover { background: #FAF6FB; }
+.assignee-item input { margin: 0; flex: none; width: 1.15em; height: 1.15em; background-color: #fff; border: 1.5px solid #7A6A82; }
+.assignee-item input:checked { background-color: var(--es-primary); border-color: var(--es-primary); }
+.assignee-item:has(input:checked) { background: #F3EAF4; font-weight: 600; }
+.line-steps { padding-left: 1.25rem; margin: 0; }
+.line-steps li { margin-bottom: 18px; }
+.line-steps .qr { border: 1px solid #E5DEE7; border-radius: 8px; background: #fff; }
+.link-code { font-size: 1.75rem; font-weight: 700; letter-spacing: .12em; color: var(--es-ink); margin: 4px 0; font-variant-numeric: tabular-nums; }
+.wf-assign { border-top: 1px solid var(--es-line, #E5DEE7); margin-top: 16px; padding-top: 12px; }
+.wf-assign summary { cursor: pointer; font-weight: 600; color: var(--es-primary); min-height: 32px; }
 .timeline { list-style: none; margin: 0; padding: 0; }
 .timeline li { display: flex; gap: 12px; padding-bottom: 12px; }
 .timeline .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--es-primary); margin-top: 7px; flex: none; }

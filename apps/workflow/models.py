@@ -123,13 +123,15 @@ class Decision(models.TextChoices):
     RESUBMIT = "RESUBMIT", "เสนออีกครั้ง"
     CANCEL = "CANCEL", "ยกเลิกการเสนอ"
     COMPLETE = "COMPLETE", "ดำเนินการเสร็จ"
+    ASSIGN = "ASSIGN", "มอบผู้รับผิดชอบ"
 
 
 ALLOWED_DECISIONS = {
     TaskKind.REVIEW: [Decision.FORWARD, Decision.RETURN],
     TaskKind.COMMAND: [Decision.COMMAND, Decision.RETURN],
     TaskKind.REVISE: [Decision.RESUBMIT, Decision.CANCEL],
-    TaskKind.ACT: [Decision.COMPLETE],
+    # ผู้รับมอบที่เป็นหัวหน้ากลุ่มงาน/ผู้บริหาร มอบต่อให้บุคลากรได้ (ตรวจสิทธิ์เพิ่มใน services.can_assign)
+    TaskKind.ACT: [Decision.COMPLETE, Decision.ASSIGN],
 }
 
 

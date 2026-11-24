@@ -39,6 +39,7 @@ class WorkflowNotificationTests(TestCase):
             data={"subject": "เรื่องแจ้งเตือน", "source_doc_no": "x", "source_org": "y", "owner_department": self.dept},
             main_file=("main.pdf", PDF, 1), extra_files=[], user=self.clerk,
         )
+        Notification.objects.all().delete()  # "หนังสือเข้าใหม่" ทดสอบแยกใน tests_channels
         self.instance = wf.start_workflow(self.doc, WorkflowTemplate.objects.get(name="มาตรฐาน: หนังสือรับทั่วไป"),
                                           self.clerk)
 

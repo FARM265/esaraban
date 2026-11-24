@@ -7,7 +7,8 @@
     <h1 class="page-title">การแจ้งเตือน</h1>
     <p class="page-sub">ยังไม่ได้อ่าน {{ UNREAD_NOTIFICATIONS }} รายการ</p>
   </div>
-  <div class="d-flex gap-2">
+  <div class="d-flex flex-wrap gap-2">
+    <a class="btn btn-outline-secondary" href="{% url 'notifications:settings' %}">รับแจ้งเตือนทางอีเมล/LINE</a>
     {% if only_unread %}<a class="btn btn-outline-secondary" href="{% url 'notifications:index' %}">แสดงทั้งหมด</a>
     {% else %}<a class="btn btn-outline-secondary" href="?unread=1">เฉพาะที่ยังไม่อ่าน</a>{% endif %}
     {% if UNREAD_NOTIFICATIONS %}

@@ -132,6 +132,7 @@ class DocumentEvent(models.Model):
         RESUBMITTED = "WF_RESUBMIT", "เสนออีกครั้ง"
         COMMANDED = "WF_COMMAND", "สั่งการ"
         COMPLETED = "WF_COMPLETE", "ดำเนินการเสร็จ"
+        ASSIGNED = "WF_ASSIGN", "มอบผู้รับผิดชอบ"
         WORKFLOW_CANCELLED = "WF_CANCEL", "ยกเลิกการเสนอ"
         SIGNED = "SIGNED", "ลงนาม"
         ENDORSED = "ENDORSED", "สั่งการ/เกษียน"

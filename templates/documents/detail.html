@@ -121,4 +121,5 @@
   </div>
 </div>
 {% endblock %}
-{% block extra_js %}{% if preview %}<script type="module" src="{% static 'js/doc-preview.js' %}?v={{ ASSET_VERSION }}"></script>{% endif %}{% endblock %}
+{% block extra_js %}{% if preview %}<script type="module" src="{% static 'js/doc-preview.js' %}?v={{ ASSET_VERSION }}"></script>{% endif %}
+{% if wf_assignee_choices %}<script src="{% static 'js/assignee-picker.js' %}?v={{ ASSET_VERSION }}" defer></script>{% endif %}{% endblock %}
