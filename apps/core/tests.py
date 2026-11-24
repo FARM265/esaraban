@@ -60,6 +60,15 @@ class MenuTests(TestCase):
                 response = self.client.get(item["url"])
                 self.assertEqual(response.status_code, 200, item["url"])
 
+    def test_notifications_in_menu_with_unread_count(self):
+        from apps.notifications.services import notify
+
+        user = make_user("reader")
+        notify([user], "ทดสอบ")
+        items = {i["label"]: i for g in build_menu(user) for i in g["items"]}
+        self.assertEqual(items["การแจ้งเตือน"]["badge"], 1)
+        self.assertIn("แจ้งเตือนทาง LINE/อีเมล", items)
+
     def test_staff_without_roles_sees_no_admin_items(self):
         labels = self._labels(make_user("plain"))
         self.assertNotIn("ผู้ใช้และสิทธิ์", labels)

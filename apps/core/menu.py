@@ -41,6 +41,12 @@ def _pending_tasks(user):
     return actionable_tasks(user).count()
 
 
+def _unread_notifications(user):
+    from apps.notifications.services import unread_count
+
+    return unread_count(user)
+
+
 def _calendar_user(user):
     from apps.documents.calendar_views import can_use_calendar
 
@@ -65,6 +71,7 @@ MENU = [
         MenuItem("หน้าหลัก", "core:home", "grid"),
         MenuItem("ภาพรวม", "reports:dashboard", "grid", _cap("view_reports")),
         MenuItem("งานรอดำเนินการ", "workflow:my_tasks", "inbox", badge=_pending_tasks),
+        MenuItem("การแจ้งเตือน", "notifications:index", "bell", badge=_unread_notifications),
         MenuItem("ลงทะเบียนรับ", "documents:receive", "download", _cap("register_documents")),
         MenuItem("สร้างหนังสือ", "letters:create", "edit", _cap("create_documents")),
         MenuItem("เอกสารของฉัน", "documents:list", "file"),
@@ -87,6 +94,7 @@ MENU = [
     ]),
     ("บัญชีของฉัน", [
         MenuItem("ข้อมูลและความปลอดภัย", "accounts:profile", "user"),
+        MenuItem("แจ้งเตือนทาง LINE/อีเมล", "notifications:settings", "bell"),
         MenuItem("มอบหมายปฏิบัติราชการแทน", "workflow:delegations", "swap"),
         MenuItem("ลายมือชื่อของฉัน", "signatures:my_signature", "edit", _cap("sign_documents")),
     ]),
