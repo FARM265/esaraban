@@ -116,6 +116,7 @@ def user_detail(request, pk):
             "assignments": target.role_assignments.select_related("role", "department").order_by("role_id"),
             "backup_left": security.remaining_backup_codes(target),
             "is_self": target.pk == request.user.pk,
+            "delete_blockers": delete_blockers(target),
         },
     )
 
@@ -209,6 +210,61 @@ def user_toggle_active(request, pk):
                f"{'เปิดใช้งาน' if target.is_active else 'ระงับ'}บัญชี {target.username}", target)
         messages.success(request, f"{'เปิดใช้งาน' if target.is_active else 'ระงับ'}บัญชี {target.username} แล้ว")
     return redirect("accounts:user_detail", pk=target.pk)
+
+
+def delete_blockers(target):
+    """ประวัติที่ทำให้ลบบัญชีไม่ได้ (หนังสือ งานในเส้นทาง ลายมือชื่อ ความเห็น ฯลฯ) คืนรายชื่อประเภทข้อมูล
+    ข้อมูลส่วนตัวที่ลบไปพร้อมบัญชีได้: บทบาท รหัสสำรอง การแจ้งเตือน ช่องทางแจ้งเตือน"""
+    from django.db import router
+    from django.db.models.deletion import Collector, ProtectedError
+
+    collector = Collector(using=router.db_for_write(User))
+    try:
+        collector.collect([target])
+    except ProtectedError as exc:
+        return sorted({HISTORY_LABELS.get(obj._meta.label, str(obj._meta.verbose_name)) for obj in exc.protected_objects})
+    return []
+
+
+HISTORY_LABELS = {
+    "registry.IssuedNumber": "เลขหนังสือที่ออก",
+    "documents.Document": "หนังสือที่สร้างหรือลงทะเบียน",
+    "workflow.WorkflowTask": "งานในเส้นทางการเสนอ",
+    "workflow.Delegation": "การมอบหมายปฏิบัติราชการแทน",
+    "signatures.SignatureImage": "ภาพลายมือชื่อ",
+    "signatures.SigningCertificate": "ใบรับรองลายมือชื่อดิจิทัล",
+    "signatures.DocumentSignature": "การลงนาม",
+    "annotations.Annotation": "การสั่งการ/เกษียน",
+}
+
+
+@capability_required(MANAGE)
+@require_POST
+def user_delete(request, pk):
+    target = get_object_or_404(User, pk=pk)
+    back = redirect("accounts:user_detail", pk=target.pk)
+    if target.pk == request.user.pk:
+        messages.error(request, "ไม่สามารถลบบัญชีของตัวเองได้")
+        return back
+    if target.is_superuser and not request.user.is_superuser:
+        messages.error(request, "บัญชีผู้ดูแลระบบสูงสุด (superuser) ลบได้เฉพาะ superuser")
+        return back
+    if _would_remove_last_admin(target, deactivating=True):
+        messages.error(request, "ลบไม่ได้ เพราะจะไม่เหลือผู้ดูแลระบบในระบบเลย")
+        return back
+    if request.POST.get("confirm_username", "").strip() != target.username:
+        messages.error(request, f"พิมพ์ชื่อผู้ใช้ {target.username} ให้ตรงเพื่อยืนยันการลบ")
+        return back
+    blockers = delete_blockers(target)
+    if blockers:
+        messages.error(request, f"ลบไม่ได้ เพราะบัญชีนี้มีประวัติในระบบ ({', '.join(blockers)}) ให้ใช้ระงับบัญชีแทน")
+        return back
+    username, name = target.username, target.display_name_th
+    with transaction.atomic():
+        _audit(request, "USER_DELETED", f"ลบบัญชี {username} ({name})", None, username=username, name=name)
+        target.delete()
+    messages.success(request, f"ลบบัญชี {username} แล้ว")
+    return redirect("accounts:user_list")
 
 
 # ---------------------------------------------------------------------------

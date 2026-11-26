@@ -416,6 +416,33 @@ class UserManagementTests(TestCase):
         self.client.post(reverse("accounts:user_role_remove", args=[self.admin.pk, assignment.pk]))
         self.assertTrue(UserRole.objects.filter(pk=assignment.pk).exists())
 
+    def test_delete_unused_account_needs_typed_username(self):
+        victim = make_user("typo_user", roles=[RoleCode.STAFF])
+        url = reverse("accounts:user_delete", args=[victim.pk])
+        self.client.post(url, {"confirm_username": "wrong"})
+        self.assertTrue(User.objects.filter(pk=victim.pk).exists())
+        response = self.client.post(url, {"confirm_username": "typo_user"})
+        self.assertRedirects(response, reverse("accounts:user_list"), fetch_redirect_response=False)
+        self.assertFalse(User.objects.filter(pk=victim.pk).exists())
+        from apps.audit.models import AuditEntry
+        self.assertTrue(AuditEntry.objects.filter(action="USER_DELETED").exists())
+
+    def test_account_with_history_cannot_be_deleted(self):
+        from apps.workflow.models import Delegation
+        victim = make_user("worker", roles=[RoleCode.STAFF])
+        Delegation.objects.create(delegator=victim, delegate=self.admin, start_date=timezone.localdate(),
+                                  end_date=timezone.localdate(), reason="ทดสอบ", created_by=self.admin)
+        page = self.client.get(reverse("accounts:user_detail", args=[victim.pk]))
+        self.assertContains(page, "การมอบหมายปฏิบัติราชการแทน")
+        self.assertNotContains(page, 'name="confirm_username"')
+        self.client.post(reverse("accounts:user_delete", args=[victim.pk]), {"confirm_username": "worker"})
+        self.assertTrue(User.objects.filter(pk=victim.pk).exists())
+
+    def test_cannot_delete_self(self):
+        self.client.post(reverse("accounts:user_delete", args=[self.admin.pk]),
+                         {"confirm_username": self.admin.username})
+        self.assertTrue(User.objects.filter(pk=self.admin.pk).exists())
+
     def test_cannot_deactivate_self(self):
         self.client.post(reverse("accounts:user_toggle_active", args=[self.admin.pk]))
         self.admin.refresh_from_db()

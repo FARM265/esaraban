@@ -90,7 +90,7 @@
       {% if is_self %}
         <p class="text-secondary small mb-0">ไม่สามารถระงับบัญชีของตัวเองได้</p>
       {% else %}
-        <p class="text-secondary small">บัญชีที่ระงับจะเข้าสู่ระบบไม่ได้ ข้อมูลและประวัติทั้งหมดยังอยู่ ระบบไม่ลบผู้ใช้</p>
+        <p class="text-secondary small">บัญชีที่ระงับจะเข้าสู่ระบบไม่ได้ ข้อมูลและประวัติทั้งหมดยังอยู่ เปิดใช้งานคืนได้</p>
         <form method="post" action="{% url 'accounts:user_toggle_active' target.pk %}" onsubmit="return confirm('ยืนยันการเปลี่ยนสถานะบัญชี?')">
           {% csrf_token %}
           {% if target.is_active %}
@@ -101,6 +101,26 @@
         </form>
       {% endif %}
     </section>
+
+    {% if not is_self %}
+    <section class="card-panel mt-3 border-danger-subtle">
+      <h2 class="panel-title text-danger">ลบผู้ใช้</h2>
+      {% if delete_blockers %}
+        <p class="small mb-0">ลบไม่ได้ เพราะบัญชีนี้มีประวัติในระบบ ({{ delete_blockers|join:", " }}) ซึ่งต้องเก็บไว้เป็นหลักฐาน
+          ถ้าไม่ใช้แล้ว ให้กด <b>ระงับบัญชี</b> แทน</p>
+      {% else %}
+        <p class="small">ลบถาวร กู้คืนไม่ได้ (ใช้กับบัญชีที่สร้างผิดหรือไม่เคยทำงานในระบบ) ประวัติการลบบันทึกใน Audit Log</p>
+        <form method="post" action="{% url 'accounts:user_delete' target.pk %}" novalidate>
+          {% csrf_token %}
+          <label for="confirm-del" class="form-label small">พิมพ์ <b>{{ target.username }}</b> เพื่อยืนยัน</label>
+          <div class="d-flex flex-wrap gap-2">
+            <input id="confirm-del" name="confirm_username" class="form-control" style="max-width:240px" autocomplete="off" required>
+            <button type="submit" class="btn btn-danger">ลบผู้ใช้</button>
+          </div>
+        </form>
+      {% endif %}
+    </section>
+    {% endif %}
   </div>
 </div>
 {% endblock %}

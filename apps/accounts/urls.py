@@ -25,6 +25,7 @@ urlpatterns = [
     path("users/<uuid:pk>/password/", manage.user_set_password, name="user_set_password"),
     path("users/<uuid:pk>/reset-mfa/", manage.user_reset_mfa, name="user_reset_mfa"),
     path("users/<uuid:pk>/toggle-active/", manage.user_toggle_active, name="user_toggle_active"),
+    path("users/<uuid:pk>/delete/", manage.user_delete, name="user_delete"),
     # กลุ่มงาน
     path("departments/", manage.department_list, name="department_list"),
     path("departments/new/", manage.department_edit, name="department_create"),
