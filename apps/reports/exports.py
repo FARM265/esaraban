@@ -78,7 +78,7 @@ def to_pdf(title, subtitle, columns, rows, *, regular_font, bold_font=None, foot
     buf = BytesIO()
     c = canvas.Canvas(buf, pagesize=(page_w, page_h), pageCompression=1)
     c.setTitle(title)
-    c.setCreator("E-Saraban (ระบบทดลอง)")
+    c.setCreator("E-Saraban")
     usable = page_w - 2 * MARGIN
     total = sum(weight for _, weight in columns)
     widths = [usable * weight / total for _, weight in columns]

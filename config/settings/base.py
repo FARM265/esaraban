@@ -237,6 +237,10 @@ ESARABAN_NOTIFY_INCOMING_ROLES = env.str("ESARABAN_NOTIFY_INCOMING_ROLES", defau
 # ส่งแจ้งเตือนนอกระบบใน thread แยก หน้าเว็บจึงไม่ต้องรอ (ปิดในเทสต์)
 NOTIFY_ASYNC = env.bool("NOTIFY_ASYNC", default=True)
 
+# แถบ "ระบบทดลอง ห้ามใช้ข้อมูลจริง" ด้านบนทุกหน้า ปิดไว้เพราะผู้บังคับบัญชาอนุมัติให้ใช้งานจริงแล้ว
+# เปิด (True) เมื่อติดตั้งเป็นระบบทดลอง/สาธิต
+ESARABAN_TEST_BANNER = env.bool("ESARABAN_TEST_BANNER", default=False)
+
 # ชื่อไฟล์ยืนยันเจ้าของเว็บจาก Google Search Console (วิธี "ไฟล์ HTML") เช่น google1234abcd5678ef90.html
 GOOGLE_SITE_VERIFICATION_FILE = env.str("GOOGLE_SITE_VERIFICATION_FILE", default="")
 

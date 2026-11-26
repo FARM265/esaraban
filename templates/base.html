@@ -14,7 +14,7 @@
   <a class="visually-hidden-focusable skip-link" href="#main">ข้ามไปยังเนื้อหา</a>
 
   {% if IS_TEST_SYSTEM %}
-  <div class="test-banner" role="note">ระบบทดลอง · ห้ามใช้ข้อมูลจริงหรือข้อมูลลับของสำนักงาน</div>
+  {% if TEST_BANNER %}<div class="test-banner" role="note">ระบบทดลอง · ห้ามใช้ข้อมูลจริงหรือข้อมูลลับของสำนักงาน</div>{% endif %}
   {% endif %}
 
   <div class="app-shell">

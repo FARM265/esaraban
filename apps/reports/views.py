@@ -76,7 +76,7 @@ def reports(request):
         if fmt == "pdf":
             body = exports.to_pdf(report.title, report.subtitle, report.columns, report.rows,
                                   regular_font=settings.ESARABAN_TEXT_FONT, bold_font=settings.ESARABAN_TEXT_FONT_BOLD,
-                                  footer=f"{settings.ESARABAN_ORG_NAME} · E-Saraban ระบบทดลอง")
+                                  footer=f"{settings.ESARABAN_ORG_NAME} · E-Saraban")
             content_type = "application/pdf"
         else:
             body = exports.to_xlsx(report.title, report.subtitle, report.columns, report.rows)

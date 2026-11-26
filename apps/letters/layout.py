@@ -165,7 +165,7 @@ class _Writer:
         self.buf = BytesIO()
         self.c = canvas.Canvas(self.buf, pagesize=A4, pageCompression=1)
         self.c.setTitle(spec.subject[:200])
-        self.c.setCreator("E-Saraban (ระบบทดลอง)")
+        self.c.setCreator("E-Saraban")
         self.page = 1
         self.y = TOP
         self._decorate()

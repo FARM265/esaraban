@@ -28,6 +28,7 @@ def site_context(request):
         "ORG_NAME": settings.ESARABAN_ORG_NAME,
         "ORG_UNIT": settings.ESARABAN_ORG_UNIT,
         "LOGIN_REQUIRE_MFA": settings.ESARABAN_LOGIN_REQUIRE_MFA,
+        "TEST_BANNER": settings.ESARABAN_TEST_BANNER,
         "IS_TEST_SYSTEM": settings.ESARABAN_IS_TEST_SYSTEM,
         "ASSET_VERSION": asset_version(),
         "YEAR_BE": timezone.localdate().year + 543,

@@ -101,7 +101,11 @@ class StatusPageTests(TestCase):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "เชื่อมต่อ PostgreSQL")
-        self.assertContains(response, "ระบบทดลอง")
+
+    def test_test_banner_only_when_turned_on(self):
+        self.assertNotContains(self.client.get(reverse("accounts:login")), "ระบบทดลอง")
+        with self.settings(ESARABAN_TEST_BANNER=True):
+            self.assertContains(self.client.get(reverse("accounts:login")), "ระบบทดลอง")
 
 
 class HomeTests(TestCase):
