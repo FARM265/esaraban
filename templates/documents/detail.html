@@ -92,10 +92,10 @@
   </div>
 
   <div class="col-12 col-xl-5 d-flex flex-column gap-3">
+    {% include "signatures/_panel.html" %}
+    {% include "workflow/_panel.html" %}
     {% include "letters/_panel.html" %}
     {% include "archive/_panel.html" %}
-    {% include "workflow/_panel.html" %}
-    {% include "signatures/_panel.html" %}
     <section class="card-panel">
       <h2 class="panel-title">ประวัติเอกสาร</h2>
       <ul class="timeline">
@@ -122,4 +122,5 @@
 </div>
 {% endblock %}
 {% block extra_js %}{% if preview %}<script type="module" src="{% static 'js/doc-preview.js' %}?v={{ ASSET_VERSION }}"></script>{% endif %}
-{% if wf_assignee_choices %}<script src="{% static 'js/assignee-picker.js' %}?v={{ ASSET_VERSION }}" defer></script>{% endif %}{% endblock %}
+{% if wf_assignee_choices %}<script src="{% static 'js/assignee-picker.js' %}?v={{ ASSET_VERSION }}" defer></script>{% endif %}
+{% if archive_form %}<script src="{% static 'js/archive-folder.js' %}?v={{ ASSET_VERSION }}" defer></script>{% endif %}{% endblock %}

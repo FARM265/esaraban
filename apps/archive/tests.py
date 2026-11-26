@@ -15,7 +15,7 @@ from apps.documents.services import register_incoming
 from apps.registry.models import RegisterBook
 
 from . import services
-from .models import ArchiveRecord
+from .models import ArchiveFolder, ArchiveRecord
 
 TMP_STORAGE = Path(tempfile.mkdtemp(prefix="esaraban-archive-"))
 PDF = b"%PDF-1.4\n1 0 obj<</Type /Page>>endobj\n%%EOF\n"
@@ -45,8 +45,12 @@ class ArchiveTests(TestCase):
 
     def post_archive(self, user, doc=None, **extra):
         login_verified(self.client, user)
-        data = {"folder": "2569/ทดสอบ", "retention_years": "10", "note": ""}
-        data.update(extra)
+        folder = extra.pop("folder", "2569/ทดสอบ")
+        if ArchiveFolder.objects.filter(name=folder).exists():
+            data = {"folder": folder}
+        else:
+            data = {"folder": "__new__", "new_folder": folder}
+        data.update({"retention_years": "10", "note": ""}, **extra)
         return self.client.post(reverse("archive:archive", args=[(doc or self.doc).pk]), data)
 
     def test_clerk_archives_and_document_becomes_read_only(self):
@@ -66,6 +70,23 @@ class ArchiveTests(TestCase):
         detail = self.client.get(reverse("documents:detail", args=[self.doc.pk]))
         self.assertContains(detail, "จัดเก็บแล้ว")
         self.assertContains(detail, "นำออกจากคลัง")
+
+    def test_new_folder_becomes_a_choice_next_time(self):
+        self.post_archive(self.clerk, folder="  2569/ร้องเรียน  ")
+        self.assertEqual(list(ArchiveFolder.objects.values_list("name", flat=True)), ["2569/ร้องเรียน"])
+        other = self.register("เรื่องที่สอง")
+        page = self.client.get(reverse("documents:detail", args=[other.pk]))
+        self.assertContains(page, '<option value="2569/ร้องเรียน">2569/ร้องเรียน</option>', html=True)
+        self.client.post(reverse("archive:archive", args=[other.pk]),
+                         {"folder": "2569/ร้องเรียน", "retention_years": "10"})
+        self.assertEqual(ArchiveRecord.objects.filter(folder="2569/ร้องเรียน").count(), 2)
+        self.assertEqual(ArchiveFolder.objects.count(), 1)
+
+    def test_new_folder_needs_a_name(self):
+        login_verified(self.client, self.clerk)
+        self.client.post(reverse("archive:archive", args=[self.doc.pk]),
+                         {"folder": "__new__", "new_folder": "  ", "retention_years": "10"})
+        self.assertFalse(ArchiveRecord.objects.exists())
 
     def test_permanent_retention_has_no_end_date(self):
         self.post_archive(self.clerk, retention_years="0")

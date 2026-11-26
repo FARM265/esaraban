@@ -58,10 +58,11 @@ def archive(request, pk):
     document = _document(request, pk)
     form = ArchiveForm(request.POST)
     if not form.is_valid():
-        messages.error(request, "ยังไม่ได้จัดเก็บ กรุณาระบุหมวด/แฟ้มและอายุการเก็บ")
+        messages.error(request, "ยังไม่ได้จัดเก็บ กรุณาเลือกหมวด/แฟ้ม (หรือพิมพ์ชื่อหมวดใหม่) และอายุการเก็บ")
         return redirect("documents:detail", pk=document.pk)
     try:
-        record = services.archive(document, request.user, ip=client_ip(request), **form.cleaned_data)
+        data = {k: form.cleaned_data[k] for k in ("folder", "retention_years", "note")}
+        record = services.archive(document, request.user, ip=client_ip(request), **data)
     except PermissionDenied:
         messages.error(request, "จัดเก็บเรื่องนี้ไม่ได้ (ยังไม่เสร็จ อยู่ระหว่างเสนอ หรือท่านไม่มีสิทธิ์)")
     except ValidationError as exc:

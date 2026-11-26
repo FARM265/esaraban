@@ -168,7 +168,10 @@ body { font-family: var(--bs-body-font-family); background: var(--es-bg); color:
 .assignee-picker { border: 0; margin: 0; padding: 0; min-width: 0; }
 .assignee-picker legend { float: none; font-size: 1rem; margin-bottom: .5rem; }
 .assignee-list { max-height: 260px; overflow-y: auto; border: 1px solid var(--es-line, #E5DEE7); border-radius: 10px; padding: 4px 0; background: #fff; }
-.assignee-group-name { position: sticky; top: -4px; background: #F3EAF4; color: var(--es-ink); font-size: .85rem; font-weight: 600; padding: 4px 12px; }
+.assignee-group-name { position: sticky; top: -4px; z-index: 1; display: flex; align-items: center; gap: 10px; background: #F3EAF4; color: var(--es-ink); font-size: .9rem; font-weight: 600; padding: 8px 12px; min-height: 40px; margin: 0; cursor: pointer; }
+.assignee-group-name input { margin: 0; flex: none; width: 1.15em; height: 1.15em; background-color: #fff; border: 1.5px solid #7A6A82; }
+.assignee-group-name input:checked, .assignee-group-name input:indeterminate { background-color: var(--es-primary); border-color: var(--es-primary); }
+.assignee-all-hint { margin-left: auto; font-weight: 400; font-size: .8rem; color: var(--es-primary); }
 .assignee-item { display: flex; align-items: center; gap: 10px; padding: 8px 12px; min-height: 44px; cursor: pointer; }
 .assignee-item:hover { background: #FAF6FB; }
 .assignee-item input { margin: 0; flex: none; width: 1.15em; height: 1.15em; background-color: #fff; border: 1.5px solid #7A6A82; }

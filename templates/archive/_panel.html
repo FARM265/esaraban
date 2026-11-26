@@ -26,7 +26,11 @@
     <div class="mb-2">
       <label for="{{ archive_form.folder.id_for_label }}" class="form-label fw-medium">{{ archive_form.folder.label }}</label>
       {{ archive_form.folder }}
-      <datalist id="archive-folders">{% for f in archive_folders %}<option value="{{ f }}">{% endfor %}</datalist>
+    </div>
+    <div class="mb-2" data-new-folder>
+      <label for="{{ archive_form.new_folder.id_for_label }}" class="form-label fw-medium">{{ archive_form.new_folder.label }}</label>
+      {{ archive_form.new_folder }}
+      <div class="form-text">ใช้เมื่อเลือก "+ สร้างหมวดใหม่" ด้านบน หมวดที่สร้างจะขึ้นให้เลือกครั้งต่อไป</div>
     </div>
     <div class="mb-2">
       <label for="{{ archive_form.retention_years.id_for_label }}" class="form-label fw-medium">{{ archive_form.retention_years.label }}</label>

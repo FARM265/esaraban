@@ -43,3 +43,21 @@ class ArchiveRecord(models.Model):
 
     def __str__(self):
         return f"{self.document} ({self.folder})"
+
+
+class ArchiveFolder(models.Model):
+    """หมวด/แฟ้มที่ใช้จัดเก็บ ให้เลือกจากรายการเดียวกัน (สร้างใหม่ได้ตอนจัดเก็บ) ชื่อจึงไม่สะกดต่างกันจนแยกแฟ้ม"""
+
+    name = models.CharField("ชื่อหมวด/แฟ้ม", max_length=200, unique=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL, related_name="+"
+    )
+    created_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        ordering = ["name"]
+        verbose_name = "หมวด/แฟ้ม"
+        verbose_name_plural = "หมวด/แฟ้ม"
+
+    def __str__(self):
+        return self.name

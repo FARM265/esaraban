@@ -104,7 +104,7 @@ class EndToEndTests(TestCase):
         self.assertEqual(doc.status, DocumentStatus.DONE)
         self.assertTrue(Notification.objects.filter(user=o.clerk, title__contains="เสร็จสิ้น").exists())
 
-        clerk.post(reverse("archive:archive", args=[doc.pk]), {"folder": "2569/ร้องเรียน", "retention_years": "10"})
+        clerk.post(reverse("archive:archive", args=[doc.pk]), {"folder": "__new__", "new_folder": "2569/ร้องเรียน", "retention_years": "10"})
         doc.refresh_from_db()
         self.assertEqual(doc.status, DocumentStatus.ARCHIVED)
         self.assertContains(clerk.get(reverse("archive:index")), doc.subject)
@@ -169,7 +169,7 @@ class EndToEndTests(TestCase):
         rows = registers.outgoing(o.clerk, today, today).rows
         self.assertEqual([r[0] for r in rows], [doc.registration.display_no])
 
-        clerk.post(reverse("archive:archive", args=[doc.pk]), {"folder": "2569/หนังสือส่ง", "retention_years": "10"})
+        clerk.post(reverse("archive:archive", args=[doc.pk]), {"folder": "__new__", "new_folder": "2569/หนังสือส่ง", "retention_years": "10"})
         doc.refresh_from_db()
         self.assertEqual(doc.status, DocumentStatus.ARCHIVED)
         self.assertTrue(audit.verify().ok)

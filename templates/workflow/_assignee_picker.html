@@ -6,7 +6,11 @@
     {% regroup users by department as groups %}
     {% for group in groups %}
     <div class="assignee-group" data-picker-group>
-      <div class="assignee-group-name">{{ group.grouper.name_th|default:"ไม่ระบุกลุ่มงาน" }}</div>
+      <label class="assignee-group-name">
+        <input type="checkbox" class="form-check-input" data-picker-all hidden aria-label="เลือกทุกคนใน{{ group.grouper.name_th|default:"กลุ่มที่ไม่ระบุกลุ่มงาน" }}">
+        <span>{{ group.grouper.name_th|default:"ไม่ระบุกลุ่มงาน" }}</span>
+        <span class="assignee-all-hint" hidden>เลือกทั้งกลุ่ม</span>
+      </label>
       {% for u in group.list %}
       <label class="assignee-item" data-picker-item data-name="{{ u.display_name_th }} {{ u.username }}">
         <input type="checkbox" class="form-check-input" name="assignees" value="{{ u.pk }}">

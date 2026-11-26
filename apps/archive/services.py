@@ -9,7 +9,7 @@ from apps.documents import access
 from apps.documents.models import Document, DocumentEvent, DocumentStatus
 from apps.documents.services import log_event
 
-from .models import ArchiveRecord
+from .models import ArchiveFolder, ArchiveRecord
 
 ARCHIVABLE_STATUSES = {DocumentStatus.REGISTERED, DocumentStatus.DONE}
 
@@ -51,9 +51,10 @@ def archive(document, user, *, folder, retention_years, note="", ip=None):
     document = Document.objects.select_for_update().get(pk=document.pk)
     if not can_archive(user, document):
         raise PermissionDenied
-    folder = (folder or "").strip()
+    folder = " ".join((folder or "").split())[:200]
     if not folder:
         raise ValidationError("กรุณาระบุหมวด/แฟ้ม")
+    ArchiveFolder.objects.get_or_create(name=folder, defaults={"created_by": user})
     now = timezone.now()
     record = ArchiveRecord.objects.create(
         document=document, folder=folder[:200], retention_years=retention_years,
@@ -88,4 +89,6 @@ def release(document, user, *, reason, ip=None):
 
 
 def folders():
-    return list(ArchiveRecord.objects.order_by("folder").values_list("folder", flat=True).distinct()[:200])
+    """หมวดทั้งหมด (ที่สร้างไว้ และที่เคยใช้จัดเก็บ) ใช้กรองหน้าคลังเอกสาร"""
+    used = set(ArchiveRecord.objects.values_list("folder", flat=True).distinct())
+    return sorted(used | set(ArchiveFolder.objects.values_list("name", flat=True)))
